@@ -1,22 +1,26 @@
 #! /bin/bash
 
+HOME=/project/browse/zhaojian
+PROJECT_ROOT=$HOME/simpleRL-reason
+cd $PROJECT_ROOT
+
 USER_ENV=`whoami`
-set -x
+# set -x
 export NCCL_DEBUG=DEBUG
 export RAY_BACKEND_LOG_LEVEL=debug
 export RAY_DEDUP_LOGS=1
 
 
-export PROJECT_NAME=verl_train
-export WANDB_API_KEY=TO_BE_FILLED
+export PROJECT_NAME=TinyZero
+export WANDB_API_KEY=b97cb56d9b9da4a7908aedcc2ca7dcde8a80643e
 export WANDB_OFFICIAL=1
 export VLLM_ATTENTION_BACKEND=XFORMERS
-export HDFS_DATA_PATH=TO_BE_FILLED
-export HDFS_MODEL_PATH=TO_BE_FILLED
-export HDFS_CHECKPOINT_PATH=TO_BE_FILLED
-export HDFS_LOG_PATH=TO_BE_FILLED
+export HDFS_DATA_PATH=$HOME/hf_datasets/simple_rl_datasets
+export HDFS_MODEL_PATH=$HOME/hf_models
+export HDFS_CHECKPOINT_PATH=$PROJECT_ROOT/_outputs/checkpoints
+export HDFS_LOG_PATH=$PROJECT_ROOT/_outputs/logs
 export RUN_NAME=verl-grpo
-export ARNOLD_WORKER_NUM=TO_BE_FILLED # number of nodes you want to use 
+export ARNOLD_WORKER_NUM=1 # number of nodes you want to use 
 
 
 # Default values
@@ -37,9 +41,9 @@ LOG_PROB_MICRO_BATCH_SIZE=160
 ROLLOUT_N=8
 KL_COEF=0.001
 TOTAL_EPOCHS=20
-DATASET_NAME=simplelr_math_35
+# DATASET_NAME=simplelr_math_35
 ROLLOUT_GPU_MEMORY_UTIL=0.6
-MODEL_NAME=Qwen2.5-Math-7B
+# MODEL_NAME=Qwen2.5-Math-7B
 SAVE_FREQ=20
 TEST_FREQ=5
 REMOVE_CLIP=False
@@ -139,41 +143,42 @@ while [[ "$#" -gt 0 ]]; do
   esac
 done
 
-echo "Training with the following parameters:"
-echo "Train Batch Size: $TRAIN_BATCH_SIZE"
-echo "Val Batch Size: $VAL_BATCH_SIZE" 
-echo "Max Prompt Length: $MAX_PROMPT_LENGTH" 
-echo "Max Response Length: $MAX_RESPONSE_LENGTH" 
-echo "Learning Rate: $LEARNING_RATE" 
-echo "PPO Mini Batch Size: $PPO_MINI_BATCH_SIZE" 
-echo "PPO Micro Batch Size: $PPO_MICRO_BATCH_SIZE" 
-echo "Micro Rollout Batch Size: $MICRO_ROLLOUT_BATCH_SIZE"
-echo "KL Loss Coefficient: $KL_LOSS_COEF" 
-echo "KL Loss Type: $KL_LOSS_TYPE" 
-echo "Temperature: $TEMPERATURE" 
-echo "Rollout N: $ROLLOUT_N" 
-echo "KL Coefficient: $KL_COEF" 
-echo "Total Epochs: $TOTAL_EPOCHS"
-echo "Dataset Name: $DATASET_NAME"
-echo "Model Name: $MODEL_NAME"
-echo "Remove Clip: $REMOVE_CLIP"
-echo "Remove Previous Ckpt: $REMOVE_PREVIOUS_CKPT"
-echo "LOG FILE PATH: $LOG_FILE_PATH"
+# echo "Training with the following parameters:"
+# echo "Train Batch Size: $TRAIN_BATCH_SIZE"
+# echo "Val Batch Size: $VAL_BATCH_SIZE" 
+# echo "Max Prompt Length: $MAX_PROMPT_LENGTH" 
+# echo "Max Response Length: $MAX_RESPONSE_LENGTH" 
+# echo "Learning Rate: $LEARNING_RATE" 
+# echo "PPO Mini Batch Size: $PPO_MINI_BATCH_SIZE" 
+# echo "PPO Micro Batch Size: $PPO_MICRO_BATCH_SIZE" 
+# echo "Micro Rollout Batch Size: $MICRO_ROLLOUT_BATCH_SIZE"
+# echo "KL Loss Coefficient: $KL_LOSS_COEF" 
+# echo "KL Loss Type: $KL_LOSS_TYPE" 
+# echo "Temperature: $TEMPERATURE" 
+# echo "Rollout N: $ROLLOUT_N" 
+# echo "KL Coefficient: $KL_COEF" 
+# echo "Total Epochs: $TOTAL_EPOCHS"
+# echo "Dataset Name: $DATASET_NAME"
+# echo "Model Name: $MODEL_NAME"
+# echo "Remove Clip: $REMOVE_CLIP"
+# echo "Remove Previous Ckpt: $REMOVE_PREVIOUS_CKPT"
+# echo "LOG FILE PATH: $LOG_FILE_PATH"
 
 max_num_batched_tokens=$(expr $MAX_PROMPT_LENGTH + $MAX_RESPONSE_LENGTH + 1000)
 echo -e "Training with the following parameters:\nTrain Batch Size: $TRAIN_BATCH_SIZE\nVal Batch Size: $VAL_BATCH_SIZE\nMax Prompt Length: $MAX_PROMPT_LENGTH\nMax Response Length: $MAX_RESPONSE_LENGTH\nLearning Rate: $LEARNING_RATE\nPPO Mini Batch Size: $PPO_MINI_BATCH_SIZE\nPPO Micro Batch Size: $PPO_MICRO_BATCH_SIZE\nKL Loss Coefficient: $KL_LOSS_COEF\nKL Loss Type: $KL_LOSS_TYPE\nTemperature: $TEMPERATURE\nRollout N: $ROLLOUT_N\nKL Coefficient: $KL_COEF\nTotal Epochs: $TOTAL_EPOCHS\nDataset Name: $DATASET_NAME\nModel Name: $MODEL_NAME"
 
 
-ray job submit --address=${HEAD_IP}:${HEAD_PORT} \
-  --entrypoint-num-cpus=1 \
-  --runtime-env-json='{
-        "working_dir": "'${WORKING_DIR}'",
-        "env_vars": {
-          "http_proxy": "",
-          "https_proxy": ""
-        }
-    }' \
-  -- python -m verl.trainer.main_ppo \
+# ray job submit --address=${HEAD_IP}:${HEAD_PORT} \
+#   --entrypoint-num-cpus=1 \
+#   --runtime-env-json='{
+#         "working_dir": "'${WORKING_DIR}'",
+#         "env_vars": {
+#           "http_proxy": "",
+#           "https_proxy": ""
+#         }
+#     }' \
+#   -- 
+python -m verl.trainer.main_ppo \
   algorithm.adv_estimator=grpo \
   data.train_files=$HDFS_DATA_PATH/$DATASET_NAME/train.parquet \
   data.val_files=$HDFS_DATA_PATH/$DATASET_NAME/test.parquet \
