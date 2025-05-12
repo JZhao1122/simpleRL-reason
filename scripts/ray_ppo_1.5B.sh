@@ -34,8 +34,8 @@ if [ "$RANK" -eq 0 ]; then
     echo "Ray Head PID: ${RAY_START_PID}"
 
     bash scripts/train_ppo_math_tune_ray.sh \
-        --model_name models--Qwen--Qwen2.5-7B \
-        --dataset_name simplelr_qwen_level3to5 \
+        --model_name models--Qwen--Qwen2.5-1.5B \
+        --dataset_name simplelr_abel_level1to4 \
         --max_response_length 8192  \
         --train_batch_size 1024 \
         --rollout_n 8 \
@@ -43,7 +43,7 @@ if [ "$RANK" -eq 0 ]; then
         --entropy_coeffient 0.001 \
         --rollout_gpu_memory_util 0.4 \
         --rollout_tp 2 \
-        --save_freq 5
+        --save_freq 10
 
     TRAINING_EXIT_CODE=$?
     if [ ${TRAINING_EXIT_CODE} -ne 0 ]; then

@@ -1,7 +1,7 @@
 #! /bin/bash
 
-HOME=/project/browse/zhaojian
-PROJECT_ROOT=$HOME/simpleRL-reason
+HOME=/cpfs02/user/liurunze
+PROJECT_ROOT=$HOME/_/simpleRL-reason
 cd $PROJECT_ROOT
 
 USER_ENV=`whoami`
@@ -15,12 +15,12 @@ export PROJECT_NAME=TinyZero
 export WANDB_API_KEY=b97cb56d9b9da4a7908aedcc2ca7dcde8a80643e
 export WANDB_OFFICIAL=1
 export VLLM_ATTENTION_BACKEND=XFORMERS
-export HDFS_DATA_PATH=$HOME/hf_datasets/simple_rl_datasets
+export HDFS_DATA_PATH=$HOME/hf_models/datasets--hkust-nlp--SimpleRL-Zoo-Data
 export HDFS_MODEL_PATH=$HOME/hf_models
 export HDFS_CHECKPOINT_PATH=$PROJECT_ROOT/_outputs/checkpoints
 export HDFS_LOG_PATH=$PROJECT_ROOT/_outputs/logs
 export RUN_NAME=verl-ppo
-export ARNOLD_WORKER_NUM=1 # number of nodes you want to use 
+export ARNOLD_WORKER_NUM=8 # number of nodes you want to use 
 
 
 # Default values
