@@ -15,13 +15,13 @@ class Reward_Service:
         # load model and tokenizer
         rm_model_path = model_path
         self.tokenizer = AutoTokenizer.from_pretrained(rm_model_path, trust_remote_code=True)
-        step_tag_id, returned_token_ids = get_prm_special_tokens(rm_model_path, self.tokenizer)
+        prm_step_tag, step_tag_id, returned_token_ids = get_prm_special_tokens(rm_model_path, self.tokenizer)
         if 'pqm' in rm_model_path:
             prm_format_str = "{question}\n{answer}"
         else:
             prm_format_str = "{question} {answer}"
         rm_config = RemoteRewardModelConfig(
-            prm_step_tag=step_tag_id, 
+            prm_step_tag=prm_step_tag, 
             format_str=prm_format_str, 
             model_name=rm_model_path, 
             controller_addr="http://localhost:10014",

@@ -221,9 +221,9 @@ for i in $(seq 1 "$NUM_SUBMISSIONS"); do
         --driver=${DRIVER_VERSION} \
         --workers=${NNODES} \
         --worker_image=${WORKER_IMAGE} \
-        --worker_cpu=$((N_GPUS_PER_WORKER_NODE * 16)) \
-        --worker_memory=$((N_GPUS_PER_WORKER_NODE * WORKER_MEMORY))Gi \
-        --worker_shared_memory=$((N_GPUS_PER_WORKER_NODE * WORKER_SHARED_MEMORY))Gi \
+        --worker_cpu=$(( (N_GPUS_PER_WORKER_NODE > 0 ? N_GPUS_PER_WORKER_NODE : 1) * 16 )) \
+        --worker_memory=$(( (N_GPUS_PER_WORKER_NODE > 0 ? N_GPUS_PER_WORKER_NODE : 1) * WORKER_MEMORY ))Gi \
+        --worker_shared_memory=$(( (N_GPUS_PER_WORKER_NODE > 0 ? N_GPUS_PER_WORKER_NODE : 1) * WORKER_SHARED_MEMORY ))Gi \
         --worker_gpu=${N_GPUS_PER_WORKER_NODE} \
         --oversold_type=${OVERSOLD_TYPE}
 

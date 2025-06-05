@@ -84,7 +84,7 @@ class ModelWorker(BaseModelWorker):
 
         infer_fn = get_infer_fn(model_path, rm_serve_type='fastchat')
         if 'skywork' in model_path.lower():
-            from reason.llm_service.workers.skywork_o1_prm_inference.prm_model import PRM_MODEL
+            from .skywork_o1_prm_inference.prm_model import PRM_MODEL
 
             self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
             self.model = PRM_MODEL.from_pretrained(model_path, trust_remote_code=True, device_map=device).eval()
@@ -100,7 +100,7 @@ class ModelWorker(BaseModelWorker):
 
             self.infer_fn = functools.partial(infer_fn, model=self.model, tokenizer=self.tokenizer, device=device, special_tag_id=step_tag_id)
         elif 'pqm' in model_path.lower():  # /cpfs02/user/liurunze/hf_models/models--Windy0822--PQM-zeta-2/model.safetensors
-            from reason.llm_service.workers.Process_Q_Model.value_model import AutoModelForCausalLMWithValueHead
+            from .Process_Q_Model.value_model import AutoModelForCausalLMWithValueHead
 
             prm_step_tag = '[PRM]'
             if '.safetensors' not in model_path:
@@ -144,7 +144,7 @@ class ModelWorker(BaseModelWorker):
                 debug=debug,
             )
 
-            step_tag_id, returned_token_ids = get_prm_special_tokens(model_path, self.tokenizer)
+            prm_step_tag, step_tag_id, returned_token_ids = get_prm_special_tokens(model_path, self.tokenizer)
             if "math-shepherd" in model_path.lower():
                 self.infer_fn = functools.partial(
                     infer_fn, model=self.model, tokenizer=self.tokenizer, device=device, returned_token_ids=returned_token_ids, step_tag_id=step_tag_id

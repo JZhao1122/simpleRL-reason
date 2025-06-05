@@ -57,7 +57,7 @@ def get_prm_special_tokens(model_name, tokenizer):
         step_tag_id = tokenizer.encode(prm_step_tag, add_special_tokens=False)[-1]
     else:
         raise ValueError("Model path: {} not recognized".format(model_name))
-    return step_tag_id, returned_token_ids
+    return prm_step_tag, step_tag_id, returned_token_ids
 
 
 def get_infer_fn(model_path, rm_serve_type='fastchat'):
@@ -175,7 +175,8 @@ def _reward_inference_fastchat(input_str, model_name, controller_addr="http://lo
         reward = results["reward"]
     except Exception as e:
         for i in range(len(input_str)):
-            print(f'input_str {i}: {input_str[i]}')
+            print(response)
+            # print(f'input_str {i}: {input_str[i]}')
         error_info = traceback.format_exc()
         print(f'Error in _reward_inference_fastchat: {error_info}')
         traceback.print_exc()
@@ -198,7 +199,7 @@ class RMRemoteCaller(RewardModelCallingFunction):
 
         super().__init__(config)
 
-    def process_input(self, qa_pairs, model_names, verbose, legal_action=[]):
+    def process_input(self, qa_pairs, verbose, legal_action=[]):
         if verbose and legal_action:
             print('*' * 8, 'rm_call.py: start legal action', '*' * 8)
             print('*' * 8, legal_action[0]["raw_action"], '*' * 8)
@@ -286,7 +287,6 @@ class RMRemoteCaller(RewardModelCallingFunction):
     def __call__(
         self,
         qa_pairs: Union[Tuple[str, str], List[Tuple[str, str]]],
-        model_names: List[str],
         verbose: Optional[bool] = False,
         local: Optional[bool] = False,
         legal_action: Optional[List[str]] = [],
@@ -294,7 +294,7 @@ class RMRemoteCaller(RewardModelCallingFunction):
         timeout: Optional[int] = 0,
     ) -> Union[List[int], List[List[int]]]:
         if process:
-            input_str = self.process_input(qa_pairs, model_names, verbose=verbose, legal_action=legal_action)
+            input_str = self.process_input(qa_pairs, verbose=verbose, legal_action=legal_action)
         else:
             input_str = qa_pairs
 

@@ -14,22 +14,29 @@ def _math_shepherd_infer_fn(input_str: str, model, tokenizer, device, returned_t
         logits = model(input_ids).logits[:, :, returned_token_ids]
         scores = logits.softmax(dim=-1)[:, :, 0]
         step_scores = scores[input_ids == step_tag_id]
-        token_scores = scores[:]
-        return step_scores, token_scores
+        token_scores = scores[:][0]
+        return step_scores.tolist(), token_scores.tolist()
     elif isinstance(input_str, list):
         for prompt in input_str:
             input_ids = torch.tensor([tokenizer.encode(prompt)], device=device)
             logits = model(input_ids).logits[:, :, returned_token_ids]
             scores = logits.softmax(dim=-1)[:, :, 0]
+            # print(scores)
             step_scores = scores[input_ids == step_tag_id]
             token_scores = scores[:]
-            rewards.append(copy.deepcopy(step_scores))
-            values.append(copy.deepcopy(token_scores))
+            rewards.append(copy.deepcopy(step_scores.tolist()))
+            values.append(copy.deepcopy(token_scores.tolist()))
 
         del input_ids, logits, scores
         torch.cuda.empty_cache()
 
-    return (rewards, values)
+    # print('*' * 8)
+    # print(rewards)
+    # print('*' * 8)
+    # print(values)
+    # print('*' * 8)
+    # input("press any key to continue...")
+    return (rewards[0], values[0][0])
 
 
 @torch.inference_mode()
@@ -50,13 +57,13 @@ def _skywork_infer_fn(qa_pairs: str, model, tokenizer, device, step_tag_id, step
         mask = indices[0] + len(prompt_ids)
         step_scores = scores[0][mask]
         token_scores = scores[0][:]
-        rewards.append(copy.deepcopy(step_scores))
-        values.append(copy.deepcopy(token_scores))
+        rewards.append(copy.deepcopy(step_scores.tolist()))
+        values.append(copy.deepcopy(token_scores.tolist()))
 
     del input_ids, indices, scores, prompt_ids, response_ids, mask
     torch.cuda.empty_cache()
 
-    return (rewards, values)
+    return (rewards[0], values[0])
 
 
 @torch.inference_mode()
@@ -76,8 +83,8 @@ def _rlhflow_mistral_infer_fn(conversations: str, model, tokenizer, device, retu
         mask = indices[0] - 1
         step_scores = scores[mask]
         token_scores = scores[:]
-        rewards.append(copy.deepcopy(step_scores))
-        values.append(copy.deepcopy(token_scores))
+        rewards.append(copy.deepcopy(step_scores.tolist()))
+        values.append(copy.deepcopy(token_scores.tolist()))
 
         if verbose:
             print('*' * 8, 'infer_fns.py: start', '*' * 8)
@@ -90,7 +97,7 @@ def _rlhflow_mistral_infer_fn(conversations: str, model, tokenizer, device, retu
     del input_ids, logits, scores, mask
     torch.cuda.empty_cache()
 
-    return (rewards, values)
+    return (rewards[0], values[0][0])
 
 
 @torch.inference_mode()
@@ -110,8 +117,8 @@ def _rlhflow_deepseek_infer_fn(conversations: str, model, tokenizer, device, ret
         mask = indices[0] - 1
         step_scores = scores[mask]
         token_scores = scores[:]
-        rewards.append(copy.deepcopy(step_scores))
-        values.append(copy.deepcopy(token_scores))
+        rewards.append(copy.deepcopy(step_scores.tolist()))
+        values.append(copy.deepcopy(token_scores.tolist()))
 
         if verbose:
             print('*' * 8, 'infer_fns.py: start', '*' * 8)
@@ -124,7 +131,7 @@ def _rlhflow_deepseek_infer_fn(conversations: str, model, tokenizer, device, ret
     del input_ids, logits, scores, mask
     torch.cuda.empty_cache()
 
-    return (rewards, values)
+    return (rewards[0], values[0][0])
 
 
 @torch.inference_mode()
@@ -140,8 +147,8 @@ def _qwen_infer_fn(conversations: str, model, tokenizer, device, special_tag_id=
         probabilities = scores * indices[0].unsqueeze(-1)
         step_scores = probabilities[probabilities != 0].view(-1, 2)[:, 1]
         token_scores = scores.unsqueeze(-1)[:].view(-1, 2)[:, 1]
-        rewards.append(copy.deepcopy(step_scores))
-        values.append(copy.deepcopy(token_scores))
+        rewards.append(copy.deepcopy(step_scores.tolist()))
+        values.append(copy.deepcopy(token_scores.tolist()))
 
         if verbose:
             print('*' * 8, 'infer_fns.py: start', '*' * 8)
@@ -153,7 +160,7 @@ def _qwen_infer_fn(conversations: str, model, tokenizer, device, special_tag_id=
     del input_ids, logits, scores
     torch.cuda.empty_cache()
 
-    return (rewards, values)
+    return (rewards[0], values[0])
 
 
 @torch.inference_mode()
@@ -169,8 +176,8 @@ def _erprm_infer_fn(input_str: str, model, tokenizer, device, returned_token_ids
         scores = logits.softmax(dim=-1)[:, :, 0]
         step_scores = scores[input_ids == step_tag_id]
         token_scores = scores[:]
-        rewards.append(copy.deepcopy(step_scores))
-        values.append(copy.deepcopy(token_scores))
+        rewards.append(copy.deepcopy(step_scores.tolist()))
+        values.append(copy.deepcopy(token_scores.tolist()))
 
         if verbose:
             print('*' * 8, 'infer_fns.py: start', '*' * 8)
@@ -183,7 +190,7 @@ def _erprm_infer_fn(input_str: str, model, tokenizer, device, returned_token_ids
     del input_ids, logits, scores
     torch.cuda.empty_cache()
 
-    return (rewards, values)
+    return (rewards[0], values[0][0])
 
 
 @torch.inference_mode()
@@ -197,8 +204,8 @@ def _pqm_infer_fn(input_str: str, model, tokenizer, device, step_tag_id, verbose
         _, _, scores = model(input_ids=input_ids)
         step_scores = scores[input_ids == step_tag_id]
         token_scores = scores[:]
-        rewards.append(copy.deepcopy(step_scores))
-        values.append(copy.deepcopy(token_scores))
+        rewards.append(copy.deepcopy(step_scores.tolist()))
+        values.append(copy.deepcopy(token_scores.tolist()))
 
         if verbose:
             print('*' * 8, 'infer_fns.py: start', '*' * 8)
@@ -210,4 +217,4 @@ def _pqm_infer_fn(input_str: str, model, tokenizer, device, step_tag_id, verbose
     del input_ids, scores
     torch.cuda.empty_cache()
 
-    return (rewards, values)
+    return (rewards[0], values[0][0])

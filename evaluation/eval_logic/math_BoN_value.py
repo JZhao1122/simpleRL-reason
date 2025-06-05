@@ -40,11 +40,12 @@ def process_file(args) -> None:
     """
     data = load_json(args.input_filepath)
     critic_service = get_critic_service(model_path=args.reward_path, tensor_parallel_size=args.reward_tensor_parallel_size)
-    data['step_rewards'] = []
+    # data['step_rewards'] = []
     data['token_rewards'] = []
     data['steps'] = []
     data['conversations'] = []
     for idd in range(len(data['policy_responses'])):
+        print(f"Processing {idd}")
         messages = [ 
             { "role": "system", "content": args.system_prompt }, 
             { "role": "user", "content": args.user_prompt_template.format(problem=data['problem']) },
@@ -58,14 +59,15 @@ def process_file(args) -> None:
                 )
             )
         full_prompt, step_prompts = critic_service.build_prompt(messages)
-        step_rewards = critic_service.predict_step_rewards(full_prompt)
-        token_rewards = critic_service.predict_token_rewards(step_prompts)[response_length]
+        # step_rewards = critic_service.predict_step_rewards(full_prompt)
+        token_rewards = critic_service.predict_token_rewards(step_prompts)
+        # token_rewards = critic_service.predict_token_rewards(step_prompts)[response_length:]
 
         steps = data['policy_responses'][idd].split('\n\n')
         steps[0] = data['problem'] + '\n' + steps[0]
         data['steps'].append(steps)
         data['conversations'].append(messages)
-        data['step_rewards'].append(step_rewards)
+        # data['step_rewards'].append(step_rewards)
         data['token_rewards'].append(token_rewards)
 
     save_json(data, args.output_filepath)

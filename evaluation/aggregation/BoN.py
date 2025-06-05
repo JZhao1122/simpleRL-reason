@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import importlib
+import traceback
 import multiprocessing as mp
 import math # For ceiling division
 
@@ -16,8 +17,9 @@ from aggregation_util import load_and_merge_json_files_to_hf_dataset
 from transformers import AutoTokenizer
 from math_verify import parse # Assuming this is your custom parsing function
 
+
 # Define the list of fields that are expected to be lists and are chunked
-LIST_FIELDS_FOR_CHUNKING = ['policy_responses', 'steps', 'correctness', 'rewards', 'conversations']
+LIST_FIELDS_FOR_CHUNKING = ['policy_responses', 'steps', 'correctness', 'conversations']
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Process data framework.")
@@ -30,6 +32,12 @@ def parse_args():
         nargs='+',
         required=True,
         help="Path to the user's processor module (e.g., 'user_logic.my_test_processor')."
+    )
+    parser.add_argument(
+        "--rewards_field_name",
+        type=str,
+        required=True,
+        help="rewards_field_name"
     )
     parser.add_argument(
         "--input_path",
@@ -54,7 +62,7 @@ def process_chunk(chunk_data, module, args, tokenizer):
     responses = chunk_data['policy_responses']
     steps = chunk_data.get('steps') # Will be None if not generated or passed
     correctness = chunk_data.get('correctness')
-    rewards = chunk_data.get('rewards')
+    rewards = chunk_data.get(args.rewards_field_name)
     conversations = chunk_data.get('conversations')
 
     extracted_answers = []
@@ -181,6 +189,7 @@ def process_record_with_chunking(record_tuple, module, budget_value, args, token
                 record_processed_chunks += 1
         except Exception as e:
             timestamped_print(f"ERROR processing chunk for record {record.get('id', record_idx)}, budget {budget_value}, chunk {i}: {e}", "ERROR")
+            traceback.print_exc()
 
     if record_processed_chunks > 0:
         avg_correctness = record_total_correctness / record_processed_chunks
@@ -192,6 +201,8 @@ def process_record_with_chunking(record_tuple, module, budget_value, args, token
 def main():
     args = parse_args()
     print_args(args, program_name="Chunked Budget Aggregation Logic with Fallbacks", version="1.2")
+
+    LIST_FIELDS_FOR_CHUNKING.append(args.rewards_field_name)
 
     modules = []
     for module_path_str in args.process_module:

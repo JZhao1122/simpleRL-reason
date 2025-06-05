@@ -39,10 +39,13 @@ def select_function(
         count_tokens("\n\n".join(steps[i]), tokenizer) 
         for i in range(len(steps))
     )
-    token_cost_reward = sum(
-        count_tokens(tokenizer.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True), tokenizer)
-        for conversation in conversations
-	)
-    token_cost = token_cost_policy + token_cost_reward
+    if conversations is not None and len(conversations) > 0 and len(conversations[0]) > 0:
+        token_cost_reward = sum(
+            count_tokens(tokenizer.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True), tokenizer)
+            for conversation in conversations
+        )
+        token_cost = token_cost_policy + token_cost_reward
+    else:
+        token_cost = -1
     
     return args.prm_strategy, select_correctness, token_cost
