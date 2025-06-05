@@ -24,34 +24,18 @@ class Critic_Service:
         timestamped_print("Critic model loaded successfully", level="INFO")
 
     def build_prompt(self, messages: List[List[Dict]]) -> Dict[str, torch.Tensor]:
+        full_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
         user_prompt = self.tokenizer.apply_chat_template(messages[:-1], tokenize=False, add_generation_prompt=True)
         responses = messages[-1]['content'].split("\n\n")
-        results = [
-            (
-                user_prompt + responses[0], 
-                len(
-                    self.tokenizer.encode(
-                        responses[0],
-                        add_special_tokens=False
-                    )
-                )
-            )
+        step_prompts = [
+            user_prompt + responses[0]
         ]
         for response in responses[1:]:
-            results.append(
-                (
-                    results[-1][0] + "\n\n" + response, 
-                    len(
-                        self.tokenizer.encode(
-                            (results[-1][0] + "\n\n" + response)[len(user_prompt):],
-                            add_special_tokens=False
-                        )
-                    )
-                )
-                
+            step_prompts.append(
+                step_prompts[-1] + "\n\n" + response, 
             )
 
-        return results
+        return full_prompt, step_prompts
 
     def simple_tokenize(self, prompt: str) -> torch.Tensor:
         inputs = self.tokenizer(
@@ -63,9 +47,7 @@ class Critic_Service:
         ).to("cuda")
         return inputs["input_ids"][0]
 
-    def predict_values(self, 
-                      prompt: str,
-                      response_length: int = 512) -> torch.Tensor:
+    def predict_token_rewards(self, prompt: str) -> List[float]:
         with torch.no_grad():
             inputs = self.tokenizer(
                 prompt,
@@ -82,10 +64,29 @@ class Critic_Service:
             
             values = outputs.logits.squeeze(-1)  # (batch_size, seq_len)
             
-            if response_length > 0:
-                values = values[:, -response_length:]
-            
         return values[0].tolist()
+    
+    def predict_step_rewards(self, prompts: List[str]) -> List[float]:
+        with torch.no_grad():
+            step_scores = []
+            for prompt in prompts:
+                inputs = self.tokenizer(
+                    prompt,
+                    padding=True,
+                    truncation=True,
+                    max_length=2048,
+                    return_tensors="pt"
+                ).to("cuda")
+                outputs = self.model(
+                    input_ids=inputs["input_ids"],
+                    # attention_mask=inputs["attention_mask"],
+                    # position_ids=inputs.get("position_ids", None)
+                )
+                
+                value = outputs.logits.squeeze(-1)[0].tolist()[-1]  # (batch_size, seq_len)
+                step_scores.append(value)
+            
+        return step_scores
 
     # def prm_function(self, prompt: str) -> float:
     #     try:

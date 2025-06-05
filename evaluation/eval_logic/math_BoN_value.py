@@ -50,22 +50,22 @@ def process_file(args) -> None:
             { "role": "user", "content": args.user_prompt_template.format(problem=data['problem']) },
             { "role": "assistant", "content": data['policy_responses'][idd] }, 
         ]
-        results = critic_service.build_prompt(messages)
-
-        
-        values = []
-        tag_indices = []
-        for prompt, response_length in results:
-            tokens = critic_service.simple_tokenize(prompt)
-            tag_indices.append(len(tokens))
-        
-        values = critic_service.predict_values(prompt, response_length)
+        response_length = len(
+            critic_service.tokenizer.apply_chat_template(
+                messages[:-1], 
+                tokenize=False, 
+                add_generation_prompt=True
+                )
+            )
+        full_prompt, step_prompts = critic_service.build_prompt(messages)
+        step_rewards = critic_service.predict_step_rewards(full_prompt)
+        token_rewards = critic_service.predict_token_rewards(step_prompts)[response_length]
 
         steps = data['policy_responses'][idd].split('\n\n')
         steps[0] = data['problem'] + '\n' + steps[0]
         data['steps'].append(steps)
         data['conversations'].append(messages)
-        # data['rewards'].append(values)
-        # data['tag_indices'].append(tag_indices)
+        data['step_rewards'].append(step_rewards)
+        data['token_rewards'].append(token_rewards)
 
     save_json(data, args.output_filepath)

@@ -70,7 +70,7 @@ do
         bash -c "${setup_commands} && ${worker_exec_command}" &> "${worker_log_file}"
     ) &
 
-    sleep 0.2 # 轻微错开 worker 启动时间
+    sleep 0.2
 done
 
 echo "Waiting for vllm server..."
