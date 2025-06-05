@@ -33,20 +33,38 @@ class ColorFormatter(logging.Formatter):
         "DEFAULT_NO_COLOR": "%(asctime)s - %(levelname)s - %(message)s" # For file logs
     }
 
-    def __init__(self, use_color=True, fmt=None, datefmt=None, style='%', validate=True):
-        super().__init__(fmt, datefmt, style, validate)
+    def __init__(self, use_color=True, fmt=None, datefmt=None, style='%', validate=True): # Added default style='%'
+        # Ensure the initial format string is set based on use_color for the parent
+        initial_fmt = fmt
+        if initial_fmt is None: # if no specific format is passed to __init__
+            if use_color:
+                # Pick a default colored format, e.g., INFO, or just a generic colored one
+                # This is mainly for the self._style object to be initialized correctly if super() uses it.
+                # However, we override format() so it's less critical what initial_fmt is here.
+                initial_fmt = self.FORMATS[logging.INFO]
+            else:
+                initial_fmt = self.FORMATS["DEFAULT_NO_COLOR"]
+        super().__init__(initial_fmt, datefmt, style, validate=validate) # Pass style char
         self.use_color = use_color
+        # Store the original datefmt to reuse
+        self._orig_datefmt = datefmt # logging.Formatter stores it as self.datefmt
 
     def format(self, record):
         if self.use_color:
-            log_fmt = self.FORMATS.get(record.levelno, self.FORMATS["DEFAULT_NO_COLOR"])
+            log_fmt_str = self.FORMATS.get(record.levelno, self.FORMATS["DEFAULT_NO_COLOR"])
         else:
-            log_fmt = self.FORMATS["DEFAULT_NO_COLOR"]
+            log_fmt_str = self.FORMATS["DEFAULT_NO_COLOR"]
         
-        # Create a formatter for each call to ensure the correct format string is used
-        # This is because the base class's _style object holds the format string
-        # and is not easily changed per-call without reinitialization or deeper manipulation.
-        formatter = logging.Formatter(log_fmt, self.datefmt, self._style)
+        # For Python 3.10+, logging.Formatter constructor's `style` parameter is correctly handled.
+        # The `_style` attribute of the formatter instance holds the style object.
+        # When creating a new Formatter, we need to pass the style *character*.
+        # The parent class's `self.default_msec_format` might also be relevant if not using datefmt.
+        
+        # Simplest way: assume '%' style for all our formats.
+        # If we wanted to support different styles dynamically, this would be more complex.
+        current_style_char = '%' # Since all our FORMATS use %-style
+
+        formatter = logging.Formatter(log_fmt_str, datefmt=self.datefmt, style=current_style_char)
         return formatter.format(record)
 
 # Global logger setup
