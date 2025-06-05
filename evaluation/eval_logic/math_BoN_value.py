@@ -40,10 +40,10 @@ def process_file(args) -> None:
     """
     data = load_json(args.input_filepath)
     critic_service = get_critic_service(model_path=args.reward_path, tensor_parallel_size=args.reward_tensor_parallel_size)
-    data['rewards'] = []
+    data['step_rewards'] = []
+    data['token_rewards'] = []
     data['steps'] = []
     data['conversations'] = []
-    data['tag_indices'] = []
     for idd in range(len(data['policy_responses'])):
         messages = [ 
             { "role": "system", "content": args.system_prompt }, 
@@ -51,6 +51,8 @@ def process_file(args) -> None:
             { "role": "assistant", "content": data['policy_responses'][idd] }, 
         ]
         results = critic_service.build_prompt(messages)
+
+        
         values = []
         tag_indices = []
         for prompt, response_length in results:
@@ -63,7 +65,7 @@ def process_file(args) -> None:
         steps[0] = data['problem'] + '\n' + steps[0]
         data['steps'].append(steps)
         data['conversations'].append(messages)
-        data['rewards'].append(values)
-        data['tag_indices'].append(tag_indices)
+        # data['rewards'].append(values)
+        # data['tag_indices'].append(tag_indices)
 
     save_json(data, args.output_filepath)
