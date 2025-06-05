@@ -32,9 +32,9 @@ from fastchat.utils import (
     get_context_length,
     str_to_torch_dtype,
 )
-from reason.llm_service.workers.base_model_worker import BaseModelWorker, app
-from reason.llm_service.workers.skywork_o1_prm_inference.prm_model import PRM_MODEL
-from reason.inference.rm_call import get_infer_fn, get_prm_special_tokens
+from .base_model_worker import BaseModelWorker, app
+from .skywork_o1_prm_inference.prm_model import PRM_MODEL
+from evaluation.infer_module.prm_utils.rm_call import get_infer_fn, get_prm_special_tokens
 # from reason.llm_service.workers.Process_Q_Model.value_model import AutoModelForCausalLMWithValueHead
 
 worker_id = str(uuid.uuid4())[:8]

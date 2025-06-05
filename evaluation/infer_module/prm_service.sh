@@ -26,7 +26,7 @@ HOST_ADDR=${HOST_ADDR:-"0.0.0.0"}
 CONTROLLER_PORT=${CONTROLLER_PORT:-"10014"}
 WORKER_BASE_PORT=${WORKER_BASE_PORT:-"10081"}
 
-LOGDIR_BASE=${PYTHONPATH}/_outputs/logs_fastchat
+LOGDIR_BASE=${PYTHONPATH}/_outputs/logs_fastchat/log_fc
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 export LOGDIR="${LOGDIR_BASE}_${TIMESTAMP}"
 mkdir -p "$LOGDIR"
@@ -34,7 +34,7 @@ controller_log_file="${LOGDIR}/controller.log"
 worker_log_dir="${LOGDIR}/workers"
 mkdir -p "$worker_log_dir"
 
-controller_session_name="fastchat_controller_main" # tmux 会话名仍然可以用于管理控制器
+controller_session_name="fastchat_controller_main"
 echo "Attempting to start FastChat Controller..."
 
 if tmux has-session -t $controller_session_name 2>/dev/null; then
@@ -73,9 +73,8 @@ do
     sleep 0.2 # 轻微错开 worker 启动时间
 done
 
-echo "All workers launched in background."
-
-sleep 100
+echo "Waiting for vllm server..."
+tail -f "${worker_log_file}" | grep -q "Application startup complete."
 
 echo "Script finished launching background processes."
 echo "To stop controller: tmux kill-session -t ${controller_session_name}"

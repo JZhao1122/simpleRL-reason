@@ -14,7 +14,7 @@
 import torch
 import torch.nn as nn
 from transformers import AutoModel
-from reason.llm_service.workers.skywork_o1_prm_inference.modeling_base import PreTrainedModelWrapper
+from .modeling_base import PreTrainedModelWrapper
 
 
 class ValueHead(nn.Module):

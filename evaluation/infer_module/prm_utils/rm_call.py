@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple, Union
 
 import requests
 
-from infer_fns import (
+from .infer_fns import (
     _math_shepherd_infer_fn,
     _skywork_infer_fn,
     _rlhflow_mistral_infer_fn,

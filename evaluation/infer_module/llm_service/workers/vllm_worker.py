@@ -18,7 +18,7 @@ from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
 from transformers import AutoTokenizer
 
-from reason.llm_service.workers.base_model_worker import BaseModelWorker
+from .base_model_worker import BaseModelWorker
 from fastchat.utils import get_context_length, build_logger
 
 worker_id = str(uuid.uuid4())[:8]
