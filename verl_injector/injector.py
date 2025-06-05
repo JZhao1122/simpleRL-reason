@@ -7,27 +7,69 @@ import logging
 import datetime
 import atexit
 import tempfile
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union # Added Union
 import argparse
+import sys
 
-# Global logger setup (console first, file handler added in main)
-log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(log_formatter)
+# --- ANSI Color Codes ---
+class ANSIColors:
+    RESET = "\033[0m"
+    DEBUG = "\033[94m"
+    INFO = "\033[92m"
+    WARNING = "\033[93m"
+    ERROR = "\033[91m"
+    CRITICAL = "\033[91m\033[1m"
+    CYAN = "\033[96m"
+    WHITE = "\033[97m"
+
+# --- Custom Color Formatter ---
+class ColorFormatter(logging.Formatter):
+    FORMATS = {
+        logging.DEBUG: ANSIColors.DEBUG + "%(asctime)s - %(levelname)s - %(message)s" + ANSIColors.RESET,
+        logging.INFO: ANSIColors.INFO + "%(asctime)s - %(levelname)s - %(message)s" + ANSIColors.RESET,
+        logging.WARNING: ANSIColors.WARNING + "%(asctime)s - %(levelname)s - %(message)s" + ANSIColors.RESET,
+        logging.ERROR: ANSIColors.ERROR + "%(asctime)s - %(levelname)s - %(message)s" + ANSIColors.RESET,
+        logging.CRITICAL: ANSIColors.CRITICAL + "%(asctime)s - %(levelname)s - %(message)s" + ANSIColors.RESET,
+        "DEFAULT_NO_COLOR": "%(asctime)s - %(levelname)s - %(message)s" # For file logs
+    }
+
+    def __init__(self, use_color=True, fmt=None, datefmt=None, style='%', validate=True):
+        super().__init__(fmt, datefmt, style, validate)
+        self.use_color = use_color
+
+    def format(self, record):
+        if self.use_color:
+            log_fmt = self.FORMATS.get(record.levelno, self.FORMATS["DEFAULT_NO_COLOR"])
+        else:
+            log_fmt = self.FORMATS["DEFAULT_NO_COLOR"]
+        
+        # Create a formatter for each call to ensure the correct format string is used
+        # This is because the base class's _style object holds the format string
+        # and is not easily changed per-call without reinitialization or deeper manipulation.
+        formatter = logging.Formatter(log_fmt, self.datefmt, self._style)
+        return formatter.format(record)
+
+# Global logger setup
+console_color_formatter = ColorFormatter(use_color=True)
+file_log_formatter = ColorFormatter(use_color=False) # Or use a standard logging.Formatter for files
+
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(console_color_formatter)
+
 logger = logging.getLogger("FileInjector")
 logger.setLevel(logging.INFO)
 logger.addHandler(console_handler)
 
 # Globals for atexit cleanup
-_originals_to_restore: Dict[str, str] = {}  # {target_path: backup_path}
-_replaced_files: List[str] = []  # [target_path, ...]
+_originals_to_restore: Dict[str, str] = {}
+_replaced_files: List[str] = []
 
 def _cleanup_files():
     """Ensures files are restored on script exit."""
     if not _originals_to_restore and not _replaced_files:
         return
 
-    logger.info("--- Initiating cleanup via atexit hook ---")
+    logger.info(f"{ANSIColors.CYAN}--- Initiating cleanup via atexit hook ---{ANSIColors.RESET}")
     restored_during_cleanup = False
     for target_path, backup_path in list(_originals_to_restore.items()):
         if os.path.exists(backup_path):
@@ -56,9 +98,9 @@ def _cleanup_files():
             _replaced_files.remove(target_path)
 
     if restored_during_cleanup:
-        logger.info("--- Atexit cleanup completed ---")
+        logger.info(f"{ANSIColors.CYAN}--- Atexit cleanup completed ---{ANSIColors.RESET}")
     elif _originals_to_restore or _replaced_files:
-        logger.warning("--- Atexit cleanup finished, but some files might still need attention. Check logs. ---")
+        logger.warning(f"{ANSIColors.CYAN}--- Atexit cleanup finished, but some files might still need attention. Check logs. ---{ANSIColors.RESET}")
         logger.warning(f"Files pending restoration: {_originals_to_restore}")
         logger.warning(f"Files marked as replaced: {_replaced_files}")
 
@@ -74,18 +116,23 @@ class FileInjector:
         self.original_files = [os.path.abspath(p) for p in original_files]
         self.replacement_files = [os.path.abspath(p) for p in replacement_files]
         self.working_directory = os.path.abspath(working_directory) if working_directory else os.getcwd()
-        self.log_dir_base = os.path.abspath(log_dir_base) if log_dir_base else os.path.join(os.path.dirname(__file__), "logs")
+        self.log_dir_base = os.path.abspath(log_dir_base) if log_dir_base else os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 
         if not os.path.exists(self.log_dir_base):
             os.makedirs(self.log_dir_base, exist_ok=True)
         
-        # Setup file logging now that we have the log_dir_base
-        log_file_path = os.path.join(self.log_dir_base, f"injection_log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-        file_handler = logging.FileHandler(log_file_path)
-        file_handler.setFormatter(log_formatter)
-        logger.addHandler(file_handler)
-        logger.info(f"Logging to file: {log_file_path}")
-
+        has_file_handler = any(isinstance(h, logging.FileHandler) and h.formatter == file_log_formatter for h in logger.handlers)
+        if not has_file_handler:
+            log_file_path = os.path.join(self.log_dir_base, f"injection_log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+            file_handler = logging.FileHandler(log_file_path)
+            file_handler.setFormatter(file_log_formatter)
+            logger.addHandler(file_handler)
+            logger.info(f"Logging to file: {log_file_path}") # This will be colored in console, plain in file
+        else:
+            for handler in logger.handlers:
+                if isinstance(handler, logging.FileHandler) and handler.formatter == file_log_formatter:
+                    logger.info(f"Continuing to log to existing file: {handler.baseFilename}")
+                    break
 
         self.backup_dir = tempfile.mkdtemp(prefix="file_injector_backup_")
         logger.info(f"Created temporary backup directory: {self.backup_dir}")
@@ -93,7 +140,7 @@ class FileInjector:
 
     def _inject_files(self) -> bool:
         global _originals_to_restore, _replaced_files
-        logger.info("--- Starting file injection process ---")
+        logger.info(f"{ANSIColors.CYAN}--- Starting file injection process ---{ANSIColors.RESET}")
         all_successful = True
         for i, original_path in enumerate(self.original_files):
             replacement_path = self.replacement_files[i]
@@ -133,34 +180,26 @@ class FileInjector:
                 all_successful = False
                 break
         if all_successful:
-            logger.info("--- File injection process completed successfully ---")
+            logger.info(f"{ANSIColors.CYAN}--- File injection process completed successfully ---{ANSIColors.RESET}")
         else:
-            logger.error("--- File injection process encountered errors ---")
+            logger.error(f"{ANSIColors.CYAN}--- File injection process encountered errors ---{ANSIColors.RESET}")
         return all_successful
 
     def _restore_files(self) -> bool:
         global _originals_to_restore, _replaced_files
-        logger.info("--- Starting file restoration process ---")
+        logger.info(f"{ANSIColors.CYAN}--- Starting file restoration process ---{ANSIColors.RESET}")
         all_successful = True
-        for original_path in reversed(list(self.backup_paths.keys())): # Use keys from backup_paths for restoration
+        for original_path in reversed(list(self.backup_paths.keys())):
             if original_path in self.backup_paths:
                 backup_path = self.backup_paths[original_path]
                 try:
                     if os.path.exists(original_path):
-                         # Check if it's one of our replaced files before removing
-                        is_replaced_by_us = False
-                        # A more robust check would be to compare content or inodes if necessary,
-                        # but for this simple case, we assume if it exists, it's our replacement.
-                        if original_path in _replaced_files:
-                            is_replaced_by_us = True
-
+                        is_replaced_by_us = original_path in _replaced_files
                         if is_replaced_by_us:
                             os.remove(original_path)
                             logger.info(f"Removed replaced file before restore: {original_path}")
                         else:
                             logger.warning(f"File '{original_path}' exists but was not marked as replaced by this injector. Will attempt to overwrite with backup.")
-
-
                     shutil.move(backup_path, original_path)
                     logger.info(f"Successfully restored '{original_path}' from backup '{backup_path}'.")
                     _originals_to_restore.pop(original_path, None)
@@ -171,9 +210,9 @@ class FileInjector:
                     all_successful = False
         
         if all_successful:
-            logger.info("--- File restoration process completed successfully ---")
+            logger.info(f"{ANSIColors.CYAN}--- File restoration process completed successfully ---{ANSIColors.RESET}")
         else:
-            logger.error("--- File restoration process encountered errors. Check backup directory and logs. ---")
+            logger.error(f"{ANSIColors.CYAN}--- File restoration process encountered errors. Check backup directory and logs. ---{ANSIColors.RESET}")
 
         try:
             shutil.rmtree(self.backup_dir)
@@ -182,91 +221,87 @@ class FileInjector:
             logger.warning(f"Could not remove temporary backup directory '{self.backup_dir}': {e}")
         return all_successful
 
-    def run_command_with_injection(self, command: str, shell: bool = True, **kwargs) -> Tuple[int, str, str]:
-        logger.info(f"--- Target command to execute ---\n{command}\n---------------------------------")
+    def run_command_with_injection(self, command: Union[str, List[str]], shell: bool = True, **kwargs) -> int:
+        command_str_for_log = command if isinstance(command, str) else ' '.join(command)
+        logger.info(f"{ANSIColors.CYAN}--- Target command to execute ---{ANSIColors.RESET}\n{command_str_for_log}\n{ANSIColors.CYAN}---------------------------------{ANSIColors.RESET}")
         logger.info(f"Working directory for command: {self.working_directory}")
 
         if not self._inject_files():
             logger.error("Aborting command execution due to file injection failure.")
             self._restore_files()
-            return -1, "", "File injection failed prior to command execution."
+            return -1
 
-        process = None
-        stdout_output = ""
-        stderr_output = ""
         return_code = -1
-
         try:
-            logger.info("Executing target command...")
+            logger.info("Executing target command (output will stream directly)...")
             process = subprocess.run(
                 command,
                 shell=shell,
                 cwd=self.working_directory,
-                capture_output=True,
                 text=True,
                 check=False,
+                # No capture_output=True, so output streams
                 **kwargs
             )
             return_code = process.returncode
-            stdout_output = process.stdout
-            stderr_output = process.stderr
             if return_code == 0:
                 logger.info(f"Command executed successfully. Return code: {return_code}")
             else:
                 logger.warning(f"Command finished with errors. Return code: {return_code}")
-            if stdout_output:
-                logger.debug(f"Command STDOUT:\n{stdout_output}") # Changed to debug for brevity
-            if stderr_output:
-                logger.debug(f"Command STDERR:\n{stderr_output}") # Changed to debug for brevity
         except FileNotFoundError:
             msg = f"ERROR: Command or one of its components not found. Ensure the command and PATH are correct."
-            logger.critical(msg)
-            stderr_output = msg
+            logger.critical(msg) # Logger will color this
+            print(f"{ANSIColors.ERROR}{msg}{ANSIColors.RESET}", file=sys.stderr) # Also print raw for clarity
             return_code = -127
         except Exception as e:
             msg = f"An unexpected error occurred while executing the command: {e}"
-            logger.critical(msg)
-            stderr_output += f"\n{msg}"
+            logger.critical(msg) # Logger will color this
+            print(f"{ANSIColors.ERROR}{msg}{ANSIColors.RESET}", file=sys.stderr) # Also print raw for clarity
             return_code = -1
         finally:
-            logger.info("--- Attempting to restore original files after command execution ---")
+            logger.info(f"{ANSIColors.CYAN}--- Attempting to restore original files after command execution ---{ANSIColors.RESET}")
             if not self._restore_files():
                 logger.critical("CRITICAL: File restoration failed after command execution. Manual check needed!")
             else:
                 logger.info("Original files restored successfully.")
-        return return_code, stdout_output, stderr_output
+        return return_code
 
 def main():
-    parser = argparse.ArgumentParser(description="Injects files, runs a command, and restores original files.")
+    parser = argparse.ArgumentParser(
+        description="Injects files, runs a command, and restores original files.",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument("-o", "--original-files", nargs='+', required=True,
                         help="List of absolute paths to original files to be replaced.")
     parser.add_argument("-r", "--replacement-files", nargs='+', required=True,
                         help="List of absolute paths to replacement files. Must match order of original-files.")
     parser.add_argument("-c", "--command", required=True,
-                        help="The command string to execute after file injection. "
-                             "If using shell features or multiline, ensure proper quoting for your shell "
-                             "or pass it as a single argument string.")
+                        help="The command string to execute after file injection. \n"
+                             "Example: \"python my_script.py --arg value\"\n"
+                             "For multiline, ensure your shell handles it or quote appropriately:\n"
+                             "  'echo \"line1\"; echo \"line2\"'")
     parser.add_argument("-w", "--working-directory", default=None,
                         help="Working directory for the command. Defaults to current directory.")
     parser.add_argument("-l", "--log-dir", default=None,
                         help="Base directory for log files. Defaults to 'logs' subdirectory next to this script.")
     parser.add_argument("--no-shell", action="store_true",
-                        help="Execute command without shell (command must be a list then, not supported via this CLI directly for simplicity, use shell=False in Python API). This flag makes `shell=False` if set.")
+                        help="Execute command without shell. The --command argument will be split by spaces. "
+                             "This is a simplified approach; for complex non-shell commands, use the Python API.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose (DEBUG level) logging to console.")
-
 
     args = parser.parse_args()
 
     if args.verbose:
-        logger.setLevel(logging.DEBUG) # Set console logger to DEBUG
-        # Also ensure any file loggers get this level if we want verbose file logs too
-        for handler in logger.handlers:
-            if isinstance(handler, logging.FileHandler):
-                handler.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
+        for handler in logger.handlers: # Ensure all handlers get the level
+            handler.setLevel(logging.DEBUG)
         logger.debug("Verbose logging enabled.")
 
-
+    command_to_run = args.command
     use_shell = not args.no_shell
+    if not use_shell:
+        command_to_run = args.command.split()
+        logger.info(f"Executing command without shell, split into: {command_to_run}")
 
     try:
         injector = FileInjector(
@@ -275,27 +310,21 @@ def main():
             working_directory=args.working_directory,
             log_dir_base=args.log_dir
         )
-        ret_code, stdout, stderr = injector.run_command_with_injection(
-            command=args.command,
+        ret_code = injector.run_command_with_injection(
+            command=command_to_run,
             shell=use_shell
         )
-
-        if stdout:
-            print("--- STDOUT ---")
-            print(stdout)
-        if stderr:
-            print("--- STDERR ---", file=sys.stderr) # Print stderr to actual stderr
-            print(stderr, file=sys.stderr)
-
+        
+        # Since output is streamed, we don't print stdout/stderr here from captured variables
+        logger.info(f"Injector script finished. Target command exited with code: {ret_code}")
         sys.exit(ret_code)
 
     except ValueError as ve:
         logger.error(f"Configuration Error: {ve}")
         sys.exit(2)
     except Exception as e:
-        logger.critical(f"An unhandled exception occurred: {e}", exc_info=True)
+        logger.critical(f"An unhandled exception occurred in the injector script: {e}", exc_info=True)
         sys.exit(3)
 
 if __name__ == "__main__":
-    import sys # For sys.exit and printing to stderr in main
     main()
