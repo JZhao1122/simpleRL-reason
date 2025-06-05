@@ -12,6 +12,11 @@ model_path=${NEW_HOME}/hf_models
 data_path=${NEW_HOME}/hf_models/datasets--hkust-nlp--SimpleRL-Zoo-Data
 output_path=${NEW_HOME}/_/simpleRL-reason/_outputs
 
+export http_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
+export https_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
+export HTTP_PROXY=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
+export HTTPS_PROXY=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
+
 export WANDB_API_KEY=b97cb56d9b9da4a7908aedcc2ca7dcde8a80643e
 #================================================================================>
 

@@ -125,4 +125,5 @@ model_scope_model
 wandb
 _data
 _outputs
+_tests
 outputs
