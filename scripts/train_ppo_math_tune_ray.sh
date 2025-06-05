@@ -20,7 +20,6 @@ export HDFS_MODEL_PATH=$HOME/hf_models
 export HDFS_CHECKPOINT_PATH=$PROJECT_ROOT/_outputs/checkpoints
 export HDFS_LOG_PATH=$PROJECT_ROOT/_outputs/logs
 export RUN_NAME=verl-ppo
-export ARNOLD_WORKER_NUM=8 # number of nodes you want to use 
 
 
 # Default values
@@ -222,7 +221,7 @@ python -m verl.trainer.main_ppo \
   trainer.project_name=$PROJECT_NAME \
   trainer.remove_previous_ckpt=$REMOVE_PREVIOUS_CKPT \
   trainer.experiment_name=$RUN_NAME \
-  trainer.n_gpus_per_node=8 \
+  trainer.n_gpus_per_node=$N_GPUS_PER_NODE \
   trainer.nnodes=$ARNOLD_WORKER_NUM \
   trainer.remove_clip=$REMOVE_CLIP \
   trainer.save_freq=$SAVE_FREQ \

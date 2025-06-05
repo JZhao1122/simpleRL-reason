@@ -30,7 +30,8 @@ export MASTER_PORT=${MASTER_PORT:-29500}
 PORT=6379
 export VLLM_ATTENTION_BACKEND=XFORMERS
 export HYDRA_FULL_ERROR=1
-export N_GPUS_PER_NODE=8
+export N_GPUS_PER_NODE=$1
+export ARNOLD_WORKER_NUM=$2 # number of nodes you want to use 
 
 if [ "$RANK" -eq 0 ]; then
     echo "Starting head node (RANK=${RANK}) on port $PORT..."
