@@ -648,7 +648,7 @@ class CriticWorker(Worker):
         # === CHANGE CODE ===
         # from transformers import AutoConfig, AutoModelForTokenClassification
         from transformers import AutoConfig
-        from .skywork_o1_prm_inference.prm_model import PRM_MODEL
+        from .critic.skywork_o1_prm_inference.prm_model import PRM_MODEL
 
         trust_remote_code = False
         critic_model_config = AutoConfig.from_pretrained(local_path, trust_remote_code=trust_remote_code)
