@@ -322,12 +322,22 @@ def main():
         logger.info(f"Executing command without shell, split into: {command_to_run}")
 
     try:
-        injector = FileInjector(
-            original_files=args.original_files,
-            replacement_files=args.replacement_files,
-            working_directory=args.working_directory,
-            log_dir_base=args.log_dir
-        )
+        rank = os.environ["RANK"]
+        if rank == 0:
+            injector = FileInjector(
+                original_files=args.original_files,
+                replacement_files=args.replacement_files,
+                working_directory=args.working_directory,
+                log_dir_base=args.log_dir
+            )
+        else:
+            injector = FileInjector(
+                original_files=[],
+                replacement_files=[],
+                working_directory=args.working_directory,
+                log_dir_base=args.log_dir
+            )
+
         ret_code = injector.run_command_with_injection(
             command=command_to_run,
             shell=use_shell
