@@ -682,8 +682,8 @@ class CriticWorker(Worker):
                                                                             )
             print('===***===')
 
-            # some parameters may not in torch_dtype
-            critic_module.to(torch_dtype)
+            # # some parameters may not in torch_dtype
+            # critic_module.to(torch_dtype)
 
             print('===***===')
 
