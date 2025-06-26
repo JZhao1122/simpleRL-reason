@@ -647,7 +647,8 @@ class CriticWorker(Worker):
 
         # === CHANGE CODE ===
         # from transformers import AutoConfig, AutoModelForTokenClassification
-        from transformers import AutoConfig, AutoModelForCausalLM
+        from transformers import AutoConfig
+        from .skywork_o1_prm_inference.prm_model import PRM_MODEL
 
         trust_remote_code = False
         critic_model_config = AutoConfig.from_pretrained(local_path, trust_remote_code=trust_remote_code)
@@ -672,7 +673,7 @@ class CriticWorker(Worker):
             #                                                                 config=critic_model_config,
             #                                                                 attn_implementation='flash_attention_2',
             #                                                                 trust_remote_code=trust_remote_code)
-            critic_module = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=local_path,
+            critic_module = PRM_MODEL.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                             torch_dtype=torch_dtype,
                                                                             config=critic_model_config,
                                                                             attn_implementation='flash_attention_2',
