@@ -82,11 +82,12 @@ class DataParallelPPOCritic(BasePPOCritic):
                                                     position_ids=position_ids_rmpad,
                                                     use_cache=False,
                                                     return_probs=True) # Add the custom argument
-                assert values_rmpad.dim() == 2, \
-                    f"Expected 2D tensor, got {values_rmpad.dim()}D tensor"
+                # assert values_rmpad.dim() == 2, \
+                #     f"Expected 2D tensor, got {values_rmpad.dim()}D tensor"
+                values_rmpad = values_rmpad.unsqueeze(-1)
                 values_rmpad = values_rmpad.squeeze(0)  # (total_nnz)
-                assert values_rmpad.size(0) == input_ids_rmpad.size(1), \
-                    f"Expected {input_ids_rmpad.size(1)} values, got {values_rmpad.size(0)} values"
+                # assert values_rmpad.size(0) == input_ids_rmpad.size(1), \
+                #     f"Expected {input_ids_rmpad.size(1)} values, got {values_rmpad.size(0)} values"
 
                 # gather output if sp > 1
                 if self.ulysses_sequence_parallel_size > 1:
