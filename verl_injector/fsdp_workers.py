@@ -646,12 +646,12 @@ class CriticWorker(Worker):
 
 
         # === CHANGE CODE ===
-        # from transformers import AutoConfig, AutoModelForTokenClassification
+        from transformers import AutoConfig, AutoModelForTokenClassification
         from transformers import AutoConfig, AutoModelForCausalLM
 
         trust_remote_code = False
         critic_model_config = AutoConfig.from_pretrained(local_path, trust_remote_code=trust_remote_code)
-        # critic_model_config.num_labels = 1
+        critic_model_config.num_labels = 1
 
         use_remove_padding = config.model.get('use_remove_padding', False)
         if use_remove_padding:
@@ -669,17 +669,17 @@ class CriticWorker(Worker):
             print('===***===')
             # setattr(critic_model_config, 'classifier_dropout', 0.)
             # setattr(critic_model_config, 'hidden_dropout', '0')
-            # critic_module = AutoModelForTokenClassification.from_pretrained(pretrained_model_name_or_path=local_path,
-            #                                                                 torch_dtype=torch_dtype,
-            #                                                                 config=critic_model_config,
-            #                                                                 attn_implementation='flash_attention_2',
-            #                                                                 trust_remote_code=trust_remote_code)
-            critic_module = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=local_path,
+            critic_module = AutoModelForTokenClassification.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                             torch_dtype=torch_dtype,
                                                                             config=critic_model_config,
                                                                             attn_implementation='flash_attention_2',
-                                                                            trust_remote_code=trust_remote_code
-                                                                            )
+                                                                            trust_remote_code=trust_remote_code)
+            # critic_module = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=local_path,
+            #                                                                 torch_dtype=torch_dtype,
+            #                                                                 config=critic_model_config,
+            #                                                                 attn_implementation='flash_attention_2',
+            #                                                                 trust_remote_code=trust_remote_code
+            #                                                                 )
             print('===***===')
 
             # # some parameters may not in torch_dtype
