@@ -13,7 +13,7 @@
 # limitations under the License.
 import torch
 import torch.nn as nn
-from transformers import AutoModel
+from transformers import AutoModelForCausalLM
 from .modeling_base import PreTrainedModelWrapper
 
 
@@ -59,7 +59,7 @@ class ValueHead(nn.Module):
 
 class PRM_MODEL(PreTrainedModelWrapper):
 
-    transformers_parent_class = AutoModel
+    transformers_parent_class = AutoModelForCausalLM
     lm_head_namings = ["lm_head", "embed_out"]
     supported_args = (
         "summary_dropout_prob",
