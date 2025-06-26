@@ -59,7 +59,7 @@ class ValueHead(nn.Module):
 
 class PRM_MODEL(PreTrainedModelWrapper):
 
-    transformers_parent_class = AutoModelForCausalLM
+    transformers_parent_class = AutoModel
     lm_head_namings = ["lm_head", "embed_out"]
     supported_args = (
         "summary_dropout_prob",

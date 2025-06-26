@@ -13,7 +13,7 @@
 # limitations under the License.
 import torch
 import torch.nn as nn
-from transformers import AutoModelForCausalLM
+from transformers import AutoModel
 from .modeling_base import PreTrainedModelWrapper
 
 
@@ -59,7 +59,7 @@ class ValueHead(nn.Module):
 
 class PRM_MODEL(PreTrainedModelWrapper):
 
-    transformers_parent_class = AutoModelForCausalLM
+    transformers_parent_class = AutoModel
     lm_head_namings = ["lm_head", "embed_out"]
     supported_args = (
         "summary_dropout_prob",
@@ -150,8 +150,8 @@ class PRM_MODEL(PreTrainedModelWrapper):
         )
 
         last_hidden_state = base_model_output.hidden_states[-1]
-        lm_logits = base_model_output.logits
-        loss = base_model_output.loss
+        # lm_logits = base_model_output.logits
+        # loss = base_model_output.loss
 
         if last_hidden_state.device != self.v_head.summary.weight.device:
             last_hidden_state = last_hidden_state.to(self.v_head.summary.weight.device)
@@ -161,13 +161,19 @@ class PRM_MODEL(PreTrainedModelWrapper):
         if return_probs:
             value = torch.nn.functional.sigmoid(value)  # convert logits_diff_to_Probs
 
-        # force upcast in fp32 if logits are in half-precision
-        if lm_logits.dtype != torch.float32:
-            lm_logits = lm_logits.float()
+        # # force upcast in fp32 if logits are in half-precision
+        # if lm_logits.dtype != torch.float32:
+        #     lm_logits = lm_logits.float()
 
         if return_past_key_values:
+            raise NotImplementedError(
+                "The `return_past_key_values` argument is not supported in this implementation. "
+                "Please remove it from the call to the model."
+            )
             return (lm_logits, loss, value, base_model_output.past_key_values)
         else:
+            lm_logits = None
+            loss = None
             return (lm_logits, loss, value)
 
     def generate(self, *args, **kwargs):
