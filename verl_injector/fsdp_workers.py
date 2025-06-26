@@ -663,8 +663,10 @@ class CriticWorker(Worker):
             apply_monkey_patch(critic_model_config, verbose=True)
 
         init_context = get_init_weight_context_manager()
+        print('===***===')
         with init_context(), warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            print('===***===')
             # setattr(critic_model_config, 'classifier_dropout', 0.)
             # setattr(critic_model_config, 'hidden_dropout', '0')
             # critic_module = AutoModelForTokenClassification.from_pretrained(pretrained_model_name_or_path=local_path,
@@ -674,16 +676,21 @@ class CriticWorker(Worker):
             #                                                                 trust_remote_code=trust_remote_code)
             critic_module = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                             torch_dtype=torch_dtype,
-                                                                            # config=critic_model_config,
-                                                                            # attn_implementation='flash_attention_2',
+                                                                            config=critic_model_config,
+                                                                            attn_implementation='flash_attention_2',
                                                                             trust_remote_code=trust_remote_code
                                                                             )
+            print('===***===')
 
             # some parameters may not in torch_dtype
             critic_module.to(torch_dtype)
 
+            print('===***===')
+
             if config.model.get('enable_gradient_checkpointing', False):
                 critic_module.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
+            
+            print('===***===')
         if self.rank == 0:
             print_model_size(critic_module)
 
