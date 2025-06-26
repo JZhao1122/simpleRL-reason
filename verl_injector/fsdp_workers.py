@@ -674,9 +674,10 @@ class CriticWorker(Worker):
             #                                                                 trust_remote_code=trust_remote_code)
             critic_module = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                             torch_dtype=torch_dtype,
-                                                                            config=critic_model_config,
-                                                                            attn_implementation='flash_attention_2',
-                                                                            trust_remote_code=trust_remote_code)
+                                                                            # config=critic_model_config,
+                                                                            # attn_implementation='flash_attention_2',
+                                                                            trust_remote_code=trust_remote_code
+                                                                            )
 
             # some parameters may not in torch_dtype
             critic_module.to(torch_dtype)
