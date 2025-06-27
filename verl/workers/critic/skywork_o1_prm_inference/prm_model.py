@@ -202,6 +202,12 @@ class PRM_MODEL(PreTrainedModelWrapper):
             # if it is a peft model, only save the v_head
             pretrained_model_state_dict = {}
 
+        new_pretrained_model_state_dict = {}
+        for key, value in pretrained_model_state_dict.items():
+            new_pretrained_model_state_dict['pretrained_model.'+key] = value
+        
+        pretrained_model_state_dict = new_pretrained_model_state_dict
+        
         v_head_state_dict = self.v_head.state_dict(*args, **kwargs).copy()
         for k, v in v_head_state_dict.items():
             pretrained_model_state_dict[f"v_head.{k}"] = v

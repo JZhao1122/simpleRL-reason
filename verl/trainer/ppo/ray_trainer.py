@@ -790,6 +790,7 @@ class RayPPOTrainer(object):
 
         # load checkpoint before doing anything
         self._load_checkpoint()
+        self._save_checkpoint()
 
         # perform validation before training
         # currently, we only support validation using the reward_function.
@@ -802,8 +803,6 @@ class RayPPOTrainer(object):
 
         # we start from step 1
         self.global_steps += 1
-        with _timer('save_checkpoint', timing_raw):
-            self._save_checkpoint()
 
         for epoch in range(self.config.trainer.total_epochs):
             for batch_dict in self.train_dataloader:
