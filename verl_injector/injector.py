@@ -323,7 +323,7 @@ def main():
 
     try:
         rank = os.environ["RANK"]
-        if rank == 0:
+        if rank == "0":
             injector = FileInjector(
                 original_files=args.original_files,
                 replacement_files=args.replacement_files,
