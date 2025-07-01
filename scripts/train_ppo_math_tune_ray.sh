@@ -83,6 +83,10 @@ generate_suffix() {
     esac
   done
 
+  if [ "$prefix" != "" ]; then
+    suffix="${prefix}_${suffix}"
+  fi
+
   if [ "$dataset_provided" = false ]; then
     suffix+="_$DATASET_NAME"
   fi
