@@ -14,7 +14,6 @@ from infer_module.infer_vllm import LLM_Service
 from infer_module.infer_reward import Reward_Service
 from vllm import SamplingParams
 from math_verify import parse, verify
-from eval_utils.beam_search import BeamSearchEnv
 from typing import Any, Dict, List, Tuple
 
 _cached_llm_service = None  # Global variable to cache the LLM_Service instance
