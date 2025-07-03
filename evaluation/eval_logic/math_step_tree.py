@@ -42,7 +42,7 @@ def load_tree(step_tree: dict) -> queue.Queue:
     
     if not step_tree:
         timestamped_print("Step tree is empty.", "WARNING")
-        return None
+        raise ValueError("Step tree is empty. Please provide a valid step tree.")
     
     bfs_queue.put(step_tree)
     while not bfs_queue.empty():
@@ -149,7 +149,7 @@ def process_file(args) -> None:
         stop_reasons = llm_service.get_stop_reason(results)[0]
         
         cprint(new_contents, "New contents generated for the node")
-        for i, new_content, finish_reason, stop_reason in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
+        for i, (new_content, finish_reason, stop_reason) in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
             # create a new node
             new_node = {
                 "index_list": node['index_list'] + [i],
