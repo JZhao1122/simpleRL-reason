@@ -181,6 +181,7 @@ def process_file(args) -> None:
                 "index_list": node['index_list'] + [i],
                 "history_content": node['history_content'] + [node['node_content']],
                 "node_content": new_content,
+                "token_num": len(token_rewards),
                 "token_rewards": token_rewards,  # Add token rewards for the node
                 "is_final": finish_reason == 'length' or stop_reason is None,  # Check if the node is final based on finish reason or stop reason
                 "finish_reason": finish_reason,
