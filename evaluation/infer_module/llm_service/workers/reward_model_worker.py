@@ -103,6 +103,7 @@ class ModelWorker(BaseModelWorker):
             self.model = PRM_MODEL.from_pretrained(model_path, trust_remote_code=True, device_map=device).eval()
             prm_step_tag = '\n'
             step_tag_id = self.tokenizer.encode(prm_step_tag)[-1]
+            self.step_tag_id = step_tag_id
 
             self.infer_fn = functools.partial(infer_fn, model=self.model, tokenizer=self.tokenizer, device=device, step_tag_id=step_tag_id)
         elif 'qwen2.5-math' in model_path.lower():
@@ -110,6 +111,7 @@ class ModelWorker(BaseModelWorker):
             self.model = AutoModel.from_pretrained(model_path, device_map='auto', torch_dtype=torch.bfloat16, trust_remote_code=True).eval()
             prm_step_tag = "<extra_0>"
             step_tag_id = self.tokenizer.encode(prm_step_tag)[0]
+            self.step_tag_id = step_tag_id
 
             self.infer_fn = functools.partial(infer_fn, model=self.model, tokenizer=self.tokenizer, device=device, special_tag_id=step_tag_id)
         elif 'pqm' in model_path.lower():  # /cpfs02/user/liurunze/hf_models/models--Windy0822--PQM-zeta-2/model.safetensors
@@ -126,6 +128,7 @@ class ModelWorker(BaseModelWorker):
             self.model = AutoModelForCausalLM.from_pretrained(backbone_model_path, torch_dtype=torch.bfloat16)
             self.tokenizer.add_special_tokens({'additional_special_tokens': [prm_step_tag]})
             step_tag_id = self.tokenizer.encode(prm_step_tag, add_special_tokens=False)[-1]
+            self.step_tag_id = step_tag_id
             self.model.resize_token_embeddings(len(self.tokenizer))
             self.model = AutoModelForCausalLMWithValueHead(self.model)
             if '.safetensors' in model_path:
