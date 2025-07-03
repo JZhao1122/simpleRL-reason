@@ -27,6 +27,7 @@ sampling_params = SamplingParams(
     top_k=-1,
     top_p=1.0,
     max_tokens=16384,
+    include_stop_str_in_output=True,  # Include the stop string in the output
 )
 results = llm_service.inference(llm_service.build_prompt(messages), sampling_params)
 new_contents = llm_service.get_text(results)[0]
