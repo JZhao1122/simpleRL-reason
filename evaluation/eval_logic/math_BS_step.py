@@ -174,7 +174,7 @@ def process_file(args) -> None:
         for i, (new_content, finish_reason, stop_reason) in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
             # create a new node
             token_rewards = reward_service.BS_predict_rewards(
-                prompt_ids=prompt_ids_list[i],
+                prompt_ids=prompt_ids_list,
                 response_ids=response_ids_list[i]
             )
             new_node = {
