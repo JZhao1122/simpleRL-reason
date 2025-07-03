@@ -58,6 +58,18 @@ class LLM_Service:
         
         return finish_reasons
     
+    def get_stop_reason(self, request_results: List) -> List[List]:
+        # Extract stop reason from the request results
+        stop_reasons = [
+            [
+                result.stop_reason
+                for result in request_result.outputs
+            ]
+            for request_result in request_results
+        ]
+        
+        return stop_reasons
+    
     def get_logprobs(self, request_results: List) -> List[List]:
         # Extract logit probabilities from the request results
         logprobs = [

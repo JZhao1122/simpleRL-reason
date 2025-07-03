@@ -134,13 +134,14 @@ def process_file(args) -> None:
         results = llm_service.inference(cur_prompt, sampling_params)
         new_contents = llm_service.get_text(results)[0]
         finish_reasons = llm_service.get_finish_reason(results)[0]
-        for i, new_content, finish_reason in enumerate(zip(new_contents, finish_reasons)):
+        stop_reasons = llm_service.get_stop_reason(results)[0]
+        for i, new_content, finish_reason, stop_reason in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
             # create a new node
             new_node = {
                 "index_list": node.index_list + [i],
                 "history_content": node.history_content + [node.node_content],
                 "node_content": new_content,
-                "is_final": finish_reason == 'length' or "boxed" in new_content,
+                "is_final": finish_reason == 'length' or stop_reason is None,  # Check if the node is final based on finish reason or stop reason
                 "finish_reason": finish_reason,
                 "correctness": None,  # To be filled later
                 "child_nodes": []
