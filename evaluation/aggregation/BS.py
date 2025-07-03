@@ -14,7 +14,7 @@ sys.path.append(root_dir)
 from tqdm import tqdm
 from functools import partial
 from utils.util import timestamped_print, save_json, print_args
-from aggregation_util import load_and_merge_json_files_to_hf_dataset
+from aggregation_util import load_json_file
 from transformers import AutoTokenizer
 from math_verify import parse # Assuming this is your custom parsing function
 
@@ -74,13 +74,17 @@ def load_tree(step_tree: dict) -> queue.Queue:
 def main():
     args = parse_args()
     print_args(args, program_name="Chunked Budget Aggregation Logic with Fallbacks", version="1.2")
-    dataset = load_and_merge_json_files_to_hf_dataset(
-        directory_path=args.input_path,
-        features=None,
-        encoding='utf-8',
-        max_workers=16 
-    )
-    timestamped_print(f"Loaded data: {dataset}")
+    json_files = [
+        os.path.join(args.input_path, filename) 
+        for filename in os.listdir(args.input_path) 
+        if filename.endswith(".json")
+    ]
+    dataset = []
+    for json_file in json_files:
+        data = load_json_file(json_file, encoding='utf-8')
+        dataset.extend(data if isinstance(data, list) else [data])
+        
+    timestamped_print(f"Loaded data: {len(dataset)} records from {len(json_files)} files.", "INFO")
     
     correct = 0
     total = 0
