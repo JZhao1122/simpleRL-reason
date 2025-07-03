@@ -135,15 +135,20 @@ def process_file(args) -> None:
     cprint(Root, "initial root node")
     q = load_tree(Root)
     cprint(q, "initial queue")
-    while q.qsize() > 0:
+    cprint(q.qsize(), "initial queue size")
+    cprint(q.empty(), "initial queue empty")
+    while not q.empty():
         node = q.get()
         cur_prompt = ''.join(node.history_content) + node.node_content
+        cprint(cur_prompt, "Current prompt for node")
 
         # generate the responses for the current node
         results = llm_service.inference(cur_prompt, sampling_params)
         new_contents = llm_service.get_text(results)[0]
         finish_reasons = llm_service.get_finish_reason(results)[0]
         stop_reasons = llm_service.get_stop_reason(results)[0]
+        
+        cprint(new_contents, "New contents generated for the node")
         for i, new_content, finish_reason, stop_reason in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
             # create a new node
             new_node = {
