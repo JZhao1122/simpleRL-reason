@@ -98,3 +98,6 @@ def main():
     
     print(f"Total: {total}, Correct: {correct}, Errors: {error}")
     timestamped_print("Processing complete.", "INFO")
+
+if __name__ == "__main__":
+    main()
