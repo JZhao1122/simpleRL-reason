@@ -162,7 +162,7 @@ class RemoteRewardModelConfig(RewardModelBaseConfig):
     multi_gpu: bool
 
 
-def _reward_inference_fastchat(input_str, model_name, controller_addr="http://localhost:10014", multi_gpu=False, timeout=0):
+def _reward_inference_fastchat(input_str, model_name, controller_addr="http://localhost:10014", multi_gpu=False, timeout=0, beam_search=False):
     if multi_gpu:
         ret = requests.post(controller_addr + "/get_worker_address", json={"model": model_name})
         worker_addr = ret.json()["address"]
@@ -172,7 +172,11 @@ def _reward_inference_fastchat(input_str, model_name, controller_addr="http://lo
         worker_addr = "http://0.0.0.0:10081"
 
     headers = {"User-Agent": "FastChat Client"}
-    gen_params = {"input_str": input_str}
+    if beam_search:
+        type = "beam_search"
+    else:
+        type = "normal"
+    gen_params = {"input_str": input_str, "type": type}
     try:
         if timeout > 0:
             response = requests.post(worker_addr + "/worker_reward_inference", headers=headers, json=gen_params, stream=True, timeout=timeout)

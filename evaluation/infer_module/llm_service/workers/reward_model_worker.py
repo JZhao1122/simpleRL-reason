@@ -198,6 +198,9 @@ class ModelWorker(BaseModelWorker):
     @torch.inference_mode()
     def reward_inference_gate(self, params):
         input_str = params["input_str"]
+        type = params['type']
+        if type == 'beam_search':
+            input_str = tuple(input_str)
         print(f"The input_str is {input_str}")
         print(f"Type of input_str: {type(input_str)}")
         print(isinstance(input_str, tuple))
