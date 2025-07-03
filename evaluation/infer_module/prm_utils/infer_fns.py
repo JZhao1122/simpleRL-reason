@@ -44,6 +44,8 @@ def _BS_verl_value_infer_fn(pr_pair: str, model, tokenizer, device, step_tag_id,
     values = []
 
     prompt_ids, response_ids = pr_pair[0], pr_pair[1]
+    prompt_ids = torch.tensor(prompt_ids, device=device)
+    response_ids = torch.tensor(response_ids, device=device)
     input_ids = torch.cat([prompt_ids, response_ids]).unsqueeze(0).to(device)
 
     _, _, scores = model(input_ids=input_ids, return_probs=True)
