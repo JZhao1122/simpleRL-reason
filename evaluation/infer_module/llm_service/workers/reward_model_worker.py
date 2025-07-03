@@ -198,6 +198,10 @@ class ModelWorker(BaseModelWorker):
     @torch.inference_mode()
     def reward_inference_gate(self, params):
         input_str = params["input_str"]
+        print(f"The input_str is {input_str}")
+        print(f"Type of input_str: {type(input_str)}")
+        print(isinstance(input_str, tuple))
+
         try:
             if isinstance(input_str, list):
                 reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
