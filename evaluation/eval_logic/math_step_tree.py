@@ -140,7 +140,7 @@ def process_file(args) -> None:
                 "index_list": node.index_list + [i],
                 "history_content": node.history_content + [node.node_content],
                 "node_content": new_content,
-                "is_final": finish_reason == 'length',
+                "is_final": finish_reason == 'length' or "boxed" in new_content,
                 "finish_reason": finish_reason,
                 "correctness": None,  # To be filled later
                 "child_nodes": []

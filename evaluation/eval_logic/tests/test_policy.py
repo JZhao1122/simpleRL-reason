@@ -27,9 +27,23 @@ sampling_params = SamplingParams(
     top_k=-1,
     top_p=1.0,
     max_tokens=16384,
+    stop=["\n"],  # Stop sequences for the model
     include_stop_str_in_output=True,  # Include the stop string in the output
 )
 results = llm_service.inference(llm_service.build_prompt(messages), sampling_params)
-new_contents = llm_service.get_text(results)[0]
-
-print(new_contents)
+print(results[0].outputs[0].finished)
+print(results[0].outputs[0].finish_reason)
+print(results[0].outputs[0].stop_reason)
+sampling_params = SamplingParams(
+    n=1,
+    temperature=0.7,
+    top_k=-1,
+    top_p=1.0,
+    max_tokens=16384,
+    # stop=["\n"],  # Stop sequences for the model
+    include_stop_str_in_output=True,  # Include the stop string in the output
+)
+results = llm_service.inference(llm_service.build_prompt(messages), sampling_params)
+print(results[0].outputs[0].finished)
+print(results[0].outputs[0].finish_reason)
+print(results[0].outputs[0].stop_reason)
