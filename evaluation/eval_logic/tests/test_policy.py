@@ -27,7 +27,7 @@ sampling_params = SamplingParams(
     top_k=-1,
     top_p=1.0,
     max_tokens=16384,
-    stop=["\n"],  # Stop sequences for the model
+    # stop=["\n"],  # Stop sequences for the model
     include_stop_str_in_output=True,  # Include the stop string in the output
     logprobs=5,
 )
