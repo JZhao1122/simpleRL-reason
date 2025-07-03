@@ -139,7 +139,7 @@ def process_file(args) -> None:
     cprint(q.empty(), "initial queue empty")
     while not q.empty():
         node = q.get()
-        cur_prompt = ''.join(node.history_content) + node.node_content
+        cur_prompt = ''.join(node['history_content']) + node['node_content']
         cprint(cur_prompt, "Current prompt for node")
 
         # generate the responses for the current node
@@ -152,25 +152,25 @@ def process_file(args) -> None:
         for i, new_content, finish_reason, stop_reason in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
             # create a new node
             new_node = {
-                "index_list": node.index_list + [i],
-                "history_content": node.history_content + [node.node_content],
+                "index_list": node['index_list'] + [i],
+                "history_content": node['history_content'] + [node['node_content']],
                 "node_content": new_content,
                 "is_final": finish_reason == 'length' or stop_reason is None,  # Check if the node is final based on finish reason or stop reason
                 "finish_reason": finish_reason,
                 "correctness": None,  # To be filled later
                 "child_nodes": []
             }
-            if new_node.is_final:
+            if new_node['is_final']:
                 # if the node is final, we need to verify the correctness
                 new_node['correctness'] = verify(
                     parse(new_content), 
                     parse(f"\\boxed{{{data['answer']}}}"),
                 )
             
-            node.child_nodes.append(new_node)
+            node['child_nodes'].append(new_node)
 
             # if the node is not final, add it to the queue for further expansion
-            if not new_node.is_final:
+            if not new_node['is_final']:
                 q.put(new_node)
 
         data['step_tree'] = Root
