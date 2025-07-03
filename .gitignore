@@ -123,9 +123,11 @@ examples/data_preprocess/data
 model_scope_model
 
 wandb
-_data
-_outputs
-_tests
-_scripts
-verl/
-outputs
+/_data
+/_outputs
+/_tests
+/_scripts
+/verl/
+/outputs
+/math_verify/
+/vllm/
