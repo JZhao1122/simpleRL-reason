@@ -125,7 +125,7 @@ class LLM_Service:
     def get_response_tokenIDs(self, request_results: List) -> List[List]:
         token_ids = [
             [
-                result.token_ids[0]
+                list(result.token_ids)
                 for result in request_result.outputs
             ]
             for request_result in request_results
@@ -136,7 +136,7 @@ class LLM_Service:
     def get_response_tokens(self, request_results: List) -> List[List]:
         tokens = [
             [
-                self.tokenizer.decode(result.token_ids[0])
+                self.tokenizer.decode(list(result.token_ids))
                 for result in request_result.outputs
             ]
             for request_result in request_results
