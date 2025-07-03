@@ -47,7 +47,7 @@ def load_tree(step_tree: dict) -> queue.Queue:
     bfs_queue.put(step_tree)
     while not bfs_queue.empty():
         node = bfs_queue.get()
-        if node.get('is_final', False) and node.child_nodes == []:
+        if node['is_final'] == False and node['child_nodes'] == []:
             not_end.put(node)
             timestamped_print(f"Found a non-final node: {node['node_content']}", "INFO")
         
