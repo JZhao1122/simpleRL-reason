@@ -93,6 +93,9 @@ def process_file(args) -> None:
     data = load_json(args.input_filepath)
     llm_service = get_llm_service(model_path=args.model_path, tensor_parallel_size=args.tensor_parallel_size)
     
+    data['expand_size'] = args.expand_size
+    data['step_tag'] = args.step_tag
+
     # construct the root
     messages = [
         { "role": "system", "content": args.system_prompt }, 
@@ -115,7 +118,7 @@ def process_file(args) -> None:
 
     # configure the sampling parameters
     sampling_params = SamplingParams(
-        n=args.num,
+        n=args.expand_size,
         temperature=args.temperature,
         top_p=args.top_p,
         top_k=args.top_k,

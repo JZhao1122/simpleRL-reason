@@ -30,7 +30,7 @@ def parse_args():
     # tree
     parser.add_argument("expand_size", type=int, default=1, help="Number of expansions for tree_build.")
     # step tree
-    parser.add_argument("step_tag", type=str, default="\n", help="Tag for the step tree.")
+    parser.add_argument("step_tag", type=str, default="\n\n", help="Tag for the step tree.")
     # entropy tree
     parser.add_argument("ep_threshold", type=float, default=0.1, help="Entropy threshold for the entropy tree.")
     # # Beam Search
