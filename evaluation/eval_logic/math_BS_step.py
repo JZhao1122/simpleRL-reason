@@ -113,7 +113,7 @@ def process_file(args) -> None:
     # get data from input file & load the llm_service
     data = load_json(args.input_filepath)
     llm_service = get_llm_service(model_path=args.model_path, tensor_parallel_size=args.tensor_parallel_size)
-    reward_service = get_reward_service(model_path=args.reward_path, tensor_parallel_size=args.reward_tensor_parallel_size)
+    reward_service = get_reward_service(model_path=args.reward_path)
     
     data['expand_size'] = args.expand_size
     data['step_tag'] = args.step_tag
