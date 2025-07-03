@@ -66,13 +66,14 @@ def load_tree(step_tree: dict) -> queue.Queue:
         node = bfs_queue.get()
         if node['is_final'] == False and node['child_nodes'] == []:
             not_end.put(node)
-            timestamped_print(f"Found a non-final node: {node['node_content']}", "INFO")
+            timestamped_print(f"Found a non-final node: {node}", "INFO")
+            continue
         
         best_node = {}
         for child in node.get('child_nodes', []):
             if best_node == {} or child['token_rewards'][-1] > best_node['token_rewards'][-1]:
                 best_node = child
-
+        
         # if the node is not final, add it to the queue for further expansion
         if not best_node['is_final']:
             bfs_queue.put(best_node)
