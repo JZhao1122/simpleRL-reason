@@ -9,9 +9,8 @@ conda activate zj_simrl
 which python
 
 export model_path=${NEW_HOME}/hf_models
-export data_path=${NEW_HOME}/hf_models/datasets--hkust-nlp--SimpleRL-Zoo-Data
+export data_path=${NEW_HOME}/hf_models/datasets--hkust-nlp--deepscaler_simplelr
 export output_path=${NEW_HOME}/_/simpleRL-reason/_outputs
-export NCCL_P2P_DISABLE=1
 
 export http_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
 export https_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
@@ -41,9 +40,8 @@ if [ "$RANK" -eq 0 ]; then
     echo "Ray Head PID: ${RAY_START_PID}"
 
     bash scripts/train_ppo_math_tune_ray.sh \
-        --model_name models--Qwen--Qwen2.5-1.5B \
-        --critic_name models--Skywork--Skywork-o1-Open-PRM-Qwen-2.5-1.5B \
-        --dataset_name simplelr_abel_level1to4 \
+        --model_name models--Qwen--Qwen2.5-7B \
+        --dataset_name data \
         --max_response_length 8192  \
         --train_batch_size 1024 \
         --rollout_n 8 \
@@ -51,7 +49,7 @@ if [ "$RANK" -eq 0 ]; then
         --entropy_coeffient 0.001 \
         --rollout_gpu_memory_util 0.4 \
         --rollout_tp 2 \
-        --save_freq 10
+        --save_freq 5
 
     TRAINING_EXIT_CODE=$?
     if [ ${TRAINING_EXIT_CODE} -ne 0 ]; then

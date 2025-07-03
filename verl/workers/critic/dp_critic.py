@@ -70,24 +70,13 @@ class DataParallelPPOCritic(BasePPOCritic):
                                                                                                 position_ids_rmpad, \
                                                                                                 sp_size=self.ulysses_sequence_parallel_size)
 
-                # # only pass input_ids and position_ids to enable flash_attn_varlen
-                # output = self.critic_module(input_ids=input_ids_rmpad,
-                #                             attention_mask=None,
-                #                             position_ids=position_ids_rmpad,
-                #                             use_cache=False)  # prevent model thinks we are generating
-                # values_rmpad = output.logits
-                # values_rmpad = values_rmpad.squeeze(0)  # (total_nnz)
-                _, _, values_rmpad = self.critic_module(input_ids=input_ids_rmpad,
-                                                    attention_mask=None,
-                                                    position_ids=position_ids_rmpad,
-                                                    use_cache=False,
-                                                    return_probs=True) # Add the custom argument
-                # assert values_rmpad.dim() == 2, \
-                #     f"Expected 2D tensor, got {values_rmpad.dim()}D tensor"
-                values_rmpad = values_rmpad.unsqueeze(-1)
+                # only pass input_ids and position_ids to enable flash_attn_varlen
+                output = self.critic_module(input_ids=input_ids_rmpad,
+                                            attention_mask=None,
+                                            position_ids=position_ids_rmpad,
+                                            use_cache=False)  # prevent model thinks we are generating
+                values_rmpad = output.logits
                 values_rmpad = values_rmpad.squeeze(0)  # (total_nnz)
-                # assert values_rmpad.size(0) == input_ids_rmpad.size(1), \
-                #     f"Expected {input_ids_rmpad.size(1)} values, got {values_rmpad.size(0)} values"
 
                 # gather output if sp > 1
                 if self.ulysses_sequence_parallel_size > 1:
@@ -100,19 +89,11 @@ class DataParallelPPOCritic(BasePPOCritic):
                 values = pad_input(values_rmpad, indices=indices, batch=batch, seqlen=seqlen).squeeze(-1)
                 values = values[:, -response_length - 1:-1]
             else:
-                # output = self.critic_module(input_ids=input_ids,
-                #                             attention_mask=attention_mask,
-                #                             position_ids=position_ids,
-                #                             use_cache=False)  # prevent model thinks we are generating
-                # values = output.logits
-                _, _, values = self.critic_module(input_ids=input_ids,
-                                              attention_mask=attention_mask,
-                                              position_ids=position_ids,
-                                              use_cache=False,
-                                              return_probs=True) # Add the custom argument
-                # assert values.dim() == 2, \
-                #     f"Expected 2D tensor, got {values.dim()}D tensor"
-                values = values.unsqueeze(-1)
+                output = self.critic_module(input_ids=input_ids,
+                                            attention_mask=attention_mask,
+                                            position_ids=position_ids,
+                                            use_cache=False)  # prevent model thinks we are generating
+                values = output.logits
                 values = values[:, -response_length - 1:-1].squeeze(-1)
             return values
 

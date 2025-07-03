@@ -25,7 +25,7 @@ class ValueHead(nn.Module):
     def __init__(self, config, **kwargs):
         super().__init__()
         if not hasattr(config, "summary_dropout_prob"):
-            summary_dropout_prob = kwargs.pop("summary_dropout_prob", 0.1)
+            summary_dropout_prob = kwargs.pop("summary_dropout_prob", 0.0)
         else:
             summary_dropout_prob = config.summary_dropout_prob
 
@@ -150,8 +150,8 @@ class PRM_MODEL(PreTrainedModelWrapper):
         )
 
         last_hidden_state = base_model_output.hidden_states[-1]
-        lm_logits = base_model_output.logits
-        loss = base_model_output.loss
+        # lm_logits = base_model_output.logits
+        # loss = base_model_output.loss
 
         if last_hidden_state.device != self.v_head.summary.weight.device:
             last_hidden_state = last_hidden_state.to(self.v_head.summary.weight.device)
@@ -161,13 +161,19 @@ class PRM_MODEL(PreTrainedModelWrapper):
         if return_probs:
             value = torch.nn.functional.sigmoid(value)  # convert logits_diff_to_Probs
 
-        # force upcast in fp32 if logits are in half-precision
-        if lm_logits.dtype != torch.float32:
-            lm_logits = lm_logits.float()
+        # # force upcast in fp32 if logits are in half-precision
+        # if lm_logits.dtype != torch.float32:
+        #     lm_logits = lm_logits.float()
 
         if return_past_key_values:
+            raise NotImplementedError(
+                "The `return_past_key_values` argument is not supported in this implementation. "
+                "Please remove it from the call to the model."
+            )
             return (lm_logits, loss, value, base_model_output.past_key_values)
         else:
+            lm_logits = None
+            loss = None
             return (lm_logits, loss, value)
 
     def generate(self, *args, **kwargs):
@@ -184,21 +190,63 @@ class PRM_MODEL(PreTrainedModelWrapper):
         """
         return self.pretrained_model.generate(*args, **kwargs)
 
-    def state_dict(self, *args, **kwargs):
-        r"""
-        Returns the state dictionary of the model. We add the state dictionary of the value head
-        to the state dictionary of the wrapped model by prepending the key with `v_head.`.
-        """
-        if not self.is_peft_model:
-            pretrained_model_state_dict = self.pretrained_model.state_dict(*args, **kwargs)
-        else:
-            # if it is a peft model, only save the v_head
-            pretrained_model_state_dict = {}
+#     def state_dict(self, *args, **kwargs):
+#         r"""
+#         Returns the state dictionary of the model. We add the state dictionary of the value head
+#         to the state dictionary of the wrapped model by prepending the key with `v_head.`.
+#         """
+#         import copy
+#         if not self.is_peft_model:
+#             pretrained_model_state_dict = self.pretrained_model.state_dict(*args, **kwargs).copy()
+#         else:
+#             # if it is a peft model, only save the v_head
+#             pretrained_model_state_dict = {}
 
-        v_head_state_dict = self.v_head.state_dict(*args, **kwargs)
-        for k, v in v_head_state_dict.items():
-            pretrained_model_state_dict[f"v_head.{k}"] = v
-        return pretrained_model_state_dict
+#         new_pretrained_model_state_dict = {}
+#         for key, value in pretrained_model_state_dict.items():
+#             new_pretrained_model_state_dict['pretrained_model.'+key] = value
+        
+#         pretrained_model_state_dict = new_pretrained_model_state_dict
+        
+#         v_head_state_dict = self.v_head.state_dict(*args, **kwargs).copy()
+#         for k, v in v_head_state_dict.items():
+#             pretrained_model_state_dict[f"v_head.{k}"] = v
+#         return pretrained_model_state_dict
+
+    def state_dict(self, destination=None, prefix='', keep_vars=False):
+        from collections import OrderedDict
+        # It's good practice to handle the destination dictionary creation
+        if destination is None:
+            destination = OrderedDict()
+
+        # --- START OF THE FIX ---
+
+        # 1. Get the state dict from the base model
+        pretrained_model_state_dict = self.pretrained_model.state_dict(
+            prefix='', # Get the unprefixed keys from the submodule
+            keep_vars=keep_vars
+        )
+
+        # 2. Manually add the "pretrained_model." prefix to each key
+        for key, value in pretrained_model_state_dict.items():
+            # The key FSDP is looking for is:
+            # parent_prefix + 'pretrained_model.' + submodule_key
+            destination_key = prefix + 'pretrained_model.' + key
+            destination[destination_key] = value
+
+        # --- END OF THE FIX ---
+
+        # 3. Now, handle the v_head in the same way
+        v_head_state_dict = self.v_head.state_dict(
+            prefix='',
+            keep_vars=keep_vars
+        )
+        for key, value in v_head_state_dict.items():
+            destination_key = prefix + 'v_head.' + key
+            destination[destination_key] = value
+
+        # 4. Return the fully populated destination dictionary
+        return destination
 
     def push_to_hub(self, *args, **kwargs):
         self.pretrained_model.v_head = self.v_head

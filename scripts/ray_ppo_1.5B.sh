@@ -8,9 +8,9 @@ which conda
 conda activate zj_simrl
 which python
 
-model_path=${NEW_HOME}/hf_models
-data_path=${NEW_HOME}/hf_models/datasets--hkust-nlp--SimpleRL-Zoo-Data
-output_path=${NEW_HOME}/_/simpleRL-reason/_outputs
+export model_path=${NEW_HOME}/hf_models
+export data_path=${NEW_HOME}/hf_models/datasets--hkust-nlp--SimpleRL-Zoo-Data
+export output_path=${NEW_HOME}/_/simpleRL-reason/_outputs
 
 export http_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
 export https_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
@@ -41,6 +41,7 @@ if [ "$RANK" -eq 0 ]; then
 
     bash scripts/train_ppo_math_tune_ray.sh \
         --model_name models--Qwen--Qwen2.5-1.5B \
+        --critic_name models--Qwen--Qwen2.5-1.5B \
         --dataset_name simplelr_abel_level1to4 \
         --max_response_length 8192  \
         --train_batch_size 1024 \

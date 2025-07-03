@@ -15,8 +15,8 @@ export PROJECT_NAME=TinyZero
 export WANDB_API_KEY=b97cb56d9b9da4a7908aedcc2ca7dcde8a80643e
 export WANDB_OFFICIAL=1
 export VLLM_ATTENTION_BACKEND=XFORMERS
-export HDFS_DATA_PATH=$HOME/hf_models/datasets--hkust-nlp--SimpleRL-Zoo-Data
-export HDFS_MODEL_PATH=$HOME/hf_models
+export HDFS_DATA_PATH=$data_path
+export HDFS_MODEL_PATH=$model_path
 export HDFS_CHECKPOINT_PATH=$PROJECT_ROOT/_outputs/checkpoints
 export HDFS_LOG_PATH=$PROJECT_ROOT/_outputs/logs
 export RUN_NAME=verl-ppo
@@ -77,6 +77,7 @@ generate_suffix() {
       --rollout_gpu_memory_util) shift 2 ;;
       --dataset_name) suffix+="_$2"; dataset_provided=true; shift 2 ;;
       --model_name) suffix+="_$2"; model_provided=true; shift 2 ;;
+      --critic_name) suffix+="_$2"; model_provided=true; shift 2 ;;
       --remove_clip) suffix+="_remove_clip$2"; shift 2 ;;
       --suffix) input_suffix="$2"; suffix_provided=true; shift 2 ;;
       *) shift ;;
@@ -134,6 +135,7 @@ while [[ "$#" -gt 0 ]]; do
     --total_epochs) TOTAL_EPOCHS="$2"; shift 2 ;;
     --dataset_name) DATASET_NAME="$2"; shift 2 ;;
     --model_name) MODEL_NAME="$2"; shift 2 ;;
+    --critic_name) CRITIC_NAME="$2"; shift 2 ;;
     --save_freq) SAVE_FREQ="$2"; shift 2 ;;
     --test_freq) TEST_FREQ="$2"; shift 2 ;;
     --remove_clip) REMOVE_CLIP="$2"; shift 2 ;;
@@ -215,7 +217,7 @@ python -m verl.trainer.main_ppo \
   critic.ppo_micro_batch_size_per_gpu=$PPO_MICRO_BATCH_SIZE \
   critic.optim.lr=1e-6 \
   critic.model.use_remove_padding=True \
-  critic.model.path=$HDFS_MODEL_PATH/$MODEL_NAME \
+  critic.model.path=$HDFS_MODEL_PATH/$CRITIC_NAME \
   critic.model.enable_gradient_checkpointing=False \
   critic.model.fsdp_config.param_offload=False \
   critic.model.fsdp_config.grad_offload=False \

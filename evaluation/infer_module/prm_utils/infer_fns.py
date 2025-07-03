@@ -40,6 +40,41 @@ def _math_shepherd_infer_fn(input_str: str, model, tokenizer, device, returned_t
 
 
 @torch.inference_mode()
+def _verl_value_infer_fn(qa_pairs: str, model, tokenizer, device, step_tag_id, step_tag='\n', special_tag_id=151652):
+    rewards = []
+    values = []
+    for qa_pair in qa_pairs:
+        question, answer = qa_pair[0], qa_pair[1]
+        # answer = answer.replace(step_tag, f"<|vision_start|>") + f"<|vision_start|>"
+
+        print("Infering question:", question)
+        print("Infering answer:", answer)
+        print("Step tag ID:", step_tag)
+        print("token:", tokenizer.bos_token)
+
+        prompt_ids = tokenizer.encode(tokenizer.bos_token + question + step_tag, return_tensors="pt").squeeze(0).to(device)
+        response_ids = tokenizer.encode(answer, return_tensors="pt").squeeze(0).to(device)
+        # indices = torch.where(response_ids == special_tag_id)
+        # response_ids[indices] = step_tag_id
+        input_ids = torch.cat([prompt_ids, response_ids]).unsqueeze(0).to(device)
+
+        # print("model device:", model.device)
+        # print("input_ids device:", input_ids.device)
+
+        _, _, scores = model(input_ids=input_ids, return_probs=True)
+        # mask = indices[0] + len(prompt_ids)
+        # step_scores = scores[0][mask]
+        token_scores = scores[0][:]
+        # rewards.append(copy.deepcopy(step_scores.tolist()))
+        values.append(copy.deepcopy(token_scores.tolist()))
+        rewards = values
+
+    del input_ids, scores, prompt_ids, response_ids
+    torch.cuda.empty_cache()
+
+    return (rewards[0], values[0])
+
+@torch.inference_mode()
 def _skywork_infer_fn(qa_pairs: str, model, tokenizer, device, step_tag_id, step_tag='\n', special_tag_id=151652):
     rewards = []
     values = []

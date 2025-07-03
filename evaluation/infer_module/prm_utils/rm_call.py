@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Union
 import requests
 
 from .infer_fns import (
+    _verl_value_infer_fn,
     _math_shepherd_infer_fn,
     _skywork_infer_fn,
     _rlhflow_mistral_infer_fn,
@@ -61,12 +62,14 @@ def get_prm_special_tokens(model_name, tokenizer):
 
 
 def get_infer_fn(model_path, rm_serve_type='fastchat'):
-    if "math-shepherd" in model_path.lower():
+    if "verl" in model_path.lower():
+        return _verl_value_infer_fn
+    elif "skywork" in model_path.lower():
+        return _skywork_infer_fn
+    elif "math-shepherd" in model_path.lower():
         return _math_shepherd_infer_fn
     elif "qwen2.5-math" in model_path.lower():
         return _qwen_infer_fn
-    elif "skywork" in model_path.lower():
-        return _skywork_infer_fn
     elif "mistral-data" in model_path.lower():
         return _rlhflow_mistral_infer_fn
     elif "deepseek-data" in model_path.lower():
@@ -210,7 +213,29 @@ class RMRemoteCaller(RewardModelCallingFunction):
             print('*' * 8, 'rm_call.py: end legal action', '*' * 8)
         if isinstance(qa_pairs[0], str):
             raise ValueError("The input of PRM should be a list of tuples")
-        if 'skywork' in self.model_name.lower():
+        if 'verl' in self.model_name.lower():
+            temp_qa_pairs = copy.deepcopy(qa_pairs)
+            for i in range(len(temp_qa_pairs)):
+                raw_splits = temp_qa_pairs[i][1].split(f" ки\n")
+                splits = []
+                for s in raw_splits:
+                    temp = s.replace("\n", " ").strip()
+                    if temp:
+                        splits.append(temp)
+                if verbose:
+                    print('*' * 8, 'verl mode', '*' * 8)
+                    # print('*' * 8, 'rm_call.py: start', '*' * 8)
+                    # print('*' * 8, qa_pairs[i][0], '*' * 8)
+                    # print('*' * 8, qa_pairs[i][1], '*' * 8)
+                    # print('*' * 8, splits, '*' * 8)
+                    # print('*' * 8, 'rm_call.py: end', '*' * 8)
+                if len(splits) == 1:
+                    answer = splits[0]
+                else:
+                    answer = f"\n".join(splits)
+                temp_qa_pairs[i] = (temp_qa_pairs[i][0], answer)
+            return temp_qa_pairs
+        elif 'skywork' in self.model_name.lower():
             temp_qa_pairs = copy.deepcopy(qa_pairs)
             for i in range(len(temp_qa_pairs)):
                 raw_splits = temp_qa_pairs[i][1].split(f" ки\n")

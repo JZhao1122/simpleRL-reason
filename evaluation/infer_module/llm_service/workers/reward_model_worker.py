@@ -83,7 +83,17 @@ class ModelWorker(BaseModelWorker):
         logger.info(f"Loading the model {self.model_names} on worker {worker_id} ...")
 
         infer_fn = get_infer_fn(model_path, rm_serve_type='fastchat')
-        if 'skywork' in model_path.lower():
+        if 'verl' in model_path.lower():
+            from .skywork_o1_prm_inference.prm_model import PRM_MODEL
+
+            self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+            self.model = PRM_MODEL.from_pretrained_value(model_path, trust_remote_code=True, device_map=device).eval()
+            self.model.to(device)
+            prm_step_tag = '\n'
+            step_tag_id = self.tokenizer.encode(prm_step_tag)[-1]
+
+            self.infer_fn = functools.partial(infer_fn, model=self.model, tokenizer=self.tokenizer, device=device, step_tag_id=step_tag_id)
+        elif 'skywork' in model_path.lower():
             from .skywork_o1_prm_inference.prm_model import PRM_MODEL
 
             self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
