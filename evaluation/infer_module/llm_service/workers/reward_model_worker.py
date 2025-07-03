@@ -198,17 +198,14 @@ class ModelWorker(BaseModelWorker):
     @torch.inference_mode()
     def reward_inference_gate(self, params):
         input_str = params["input_str"]
-        type = params['type']
-        if type == 'beam_search':
+        if params['type'] == 'beam_search':
             input_str = tuple(input_str)
         print(f"The input_str is {input_str}")
         print(f"Type of input_str: {type(input_str)}")
         print(isinstance(input_str, tuple))
 
         try:
-            if isinstance(input_str, list):
-                reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
-            elif isinstance(input_str, tuple):
+            if params['type'] == 'beam_search':
                 self.infer_fn = functools.partial(
                     get_infer_fn(self.model_path, rm_serve_type='fastchat', beam_search=True), 
                     model=self.model, 
@@ -217,6 +214,8 @@ class ModelWorker(BaseModelWorker):
                     step_tag_id=self.step_tag_id
                 )
                 # input_str = (prompt_ids, response_ids) => both dim=1
+                reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
+            if isinstance(input_str, list):
                 reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
             else:
                 reward = self.infer_fn(input_str).tolist()
