@@ -32,7 +32,9 @@ sampling_params = SamplingParams(
     logprobs=5,
 )
 results = llm_service.inference(llm_service.build_prompt(messages), sampling_params)
-print(results)
+print(llm_service.get_prompt_tokenIDs(results))
+print(llm_service.get_response_tokenIDs(results))
+print(llm_service.get_entropys(results))
 # sampling_params = SamplingParams(
 #     n=1,
 #     temperature=0.7,
