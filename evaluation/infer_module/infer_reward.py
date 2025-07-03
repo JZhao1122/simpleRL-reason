@@ -37,8 +37,21 @@ class Reward_Service:
     def predict_rewards(self, 
                       problem: str,
                       steps: List[str]) -> List:
+        '''from Runze's implementation'''
         qa_pairs = [(problem, ' ки\n'.join(steps))]
         step_scores, token_scores = self.rm_call(qa_pairs, verbose=True)
+        return step_scores, token_scores
+    
+    def predict_rewards_bs(self, 
+                      tokens: List,
+                      masks: List) -> List:
+        '''Specialized method for Beam Search'''
+        step_scores, token_scores = self.rm_call(
+            qa_pairs=None, 
+            verbose=True,
+            tokens=tokens,
+            masks=masks
+        )
         return step_scores, token_scores
     
     # def build_prompt(self, messages: List[List[Dict]]) -> Dict[str, torch.Tensor]:
