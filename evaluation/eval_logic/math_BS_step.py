@@ -118,7 +118,14 @@ def process_file(args) -> None:
     step_tag: str
     """
     # get data from input file & load the llm_service
-    data = load_json(args.input_filepath)
+    try:
+        data = load_json(args.output_filepath)
+        if data == {}:
+            raise ValueError("Output file is empty, loading from input file instead.")
+    except Exception as e:
+        timestamped_print(f"Error loading JSON file {args.output_filepath}: {e}", "ERROR")
+        data = load_json(args.input_filepath)
+    
     llm_service = get_llm_service(model_path=args.model_path, tensor_parallel_size=args.tensor_parallel_size)
     reward_service = get_reward_service(model_path=args.reward_path)
     
