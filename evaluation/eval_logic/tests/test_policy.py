@@ -12,7 +12,7 @@ from infer_module.infer_vllm import LLM_Service
 from vllm import SamplingParams
 from math_verify import parse, verify
 
-llm_service = LLM_Service(model_path="/cpfs02/user/liurunze/hf_models/DeepSeek-R1-Distill-Qwen-1.5B", tensor_parallel_size=1)
+llm_service = LLM_Service(model_path="_outputs/checkpoints/verl-ppo_models--Qwen--Qwen2.5-7B_models--Skywork--Skywork-o1-Open-PRM-Qwen-2.5-7B_simplelr_qwen_level3to5_max_response8192_batch1024_rollout8_klcoef0.0001_entcoef0.001/global_step_90/actor/huggingface", tensor_parallel_size=1)
 
 problem = "Convert the point $(0,3)$ in rectangular coordinates to polar coordinates.  Enter your answer in the form $(r,\\theta),$ where $r > 0$ and $0 \\le \\theta < 2 \\pi.$"
 
