@@ -38,6 +38,23 @@ def _math_shepherd_infer_fn(input_str: str, model, tokenizer, device, returned_t
     # input("press any key to continue...")
     return (rewards[0], values[0][0])
 
+@torch.inference_mode()
+def _BS_verl_value_infer_fn(pr_pair: str, model, tokenizer, device, step_tag_id, step_tag='\n', special_tag_id=151652):
+    rewards = []
+    values = []
+
+    prompt_ids, response_ids = pr_pair[0], pr_pair[1]
+    input_ids = torch.cat([prompt_ids, response_ids]).unsqueeze(0).to(device)
+
+    _, _, scores = model(input_ids=input_ids, return_probs=True)
+    token_scores = scores[0][:]
+    values.append(copy.deepcopy(token_scores.tolist()))
+    rewards = values
+
+    del input_ids, scores, prompt_ids, response_ids
+    torch.cuda.empty_cache()
+
+    return (rewards[0], values[0])
 
 @torch.inference_mode()
 def _verl_value_infer_fn(qa_pairs: str, model, tokenizer, device, step_tag_id, step_tag='\n', special_tag_id=151652):

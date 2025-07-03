@@ -83,6 +83,8 @@ class ModelWorker(BaseModelWorker):
         logger.info(f"Loading the model {self.model_names} on worker {worker_id} ...")
 
         infer_fn = get_infer_fn(model_path, rm_serve_type='fastchat')
+        self.device = device
+        self.model_path = model_path
         if 'verl' in model_path.lower():
             from .skywork_o1_prm_inference.prm_model import PRM_MODEL
 
@@ -91,6 +93,7 @@ class ModelWorker(BaseModelWorker):
             self.model.to(device)
             prm_step_tag = '\n'
             step_tag_id = self.tokenizer.encode(prm_step_tag)[-1]
+            self.step_tag_id = step_tag_id
 
             self.infer_fn = functools.partial(infer_fn, model=self.model, tokenizer=self.tokenizer, device=device, step_tag_id=step_tag_id)
         elif 'skywork' in model_path.lower():
@@ -197,6 +200,16 @@ class ModelWorker(BaseModelWorker):
         input_str = params["input_str"]
         try:
             if isinstance(input_str, list):
+                reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
+            elif isinstance(input_str, tuple):
+                self.infer_fn = functools.partial(
+                    get_infer_fn(self.model_path, rm_serve_type='fastchat', beam_search=True), 
+                    model=self.model, 
+                    tokenizer=self.tokenizer, 
+                    device=self.device, 
+                    step_tag_id=self.step_tag_id
+                )
+                # input_str = (prompt_ids, response_ids) => both dim=1
                 reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
             else:
                 reward = self.infer_fn(input_str).tolist()

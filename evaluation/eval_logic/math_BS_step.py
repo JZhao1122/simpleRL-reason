@@ -38,19 +38,16 @@ def get_llm_service(model_path: str = None, tensor_parallel_size: int = 1) -> LL
         timestamped_print("MODEL: Model loaded successfully via get_llm_service.")
     return _cached_llm_service
 
-def get_reward_service(model_path: str = None, tensor_parallel_size: int = 1) -> Reward_Service:
+def get_reward_service(model_path: str = None) -> Reward_Service:
     global _cached_reward_service
     if _cached_reward_service is None:
-        timestamped_print("CRITIC: Initializing Critic service...")
+        timestamped_print("REWARD: Initializing reward service...")
         try:
             _cached_reward_service = Reward_Service(
-                model_path=model_path,
-                tensor_parallel_size=tensor_parallel_size,
-                torch_dtype=torch.float16,
-                attn_implementation="flash_attention_2"
+                model_path=model_path
             )
         except Exception as e:
-            timestamped_print(f"CRITIC: Failed to initialize: {e}", "ERROR")
+            timestamped_print(f"REWARD: Failed to initialize: {e}", "ERROR")
             raise
     return _cached_reward_service
 
@@ -77,8 +74,6 @@ def load_tree(step_tree: dict) -> queue.Queue:
     
     # Further processing can be added here
     return not_end
-
-def select_best()
 
 @register_processor('check_finish')
 def check_finish(args: argparse.Namespace, output_filepath: str) -> bool:
@@ -119,6 +114,7 @@ def process_file(args) -> None:
     # get data from input file & load the llm_service
     data = load_json(args.input_filepath)
     llm_service = get_llm_service(model_path=args.model_path, tensor_parallel_size=args.tensor_parallel_size)
+    reward_service = get_reward_service(model_path=args.reward_path, tensor_parallel_size=args.reward_tensor_parallel_size)
     
     data['expand_size'] = args.expand_size
     data['step_tag'] = args.step_tag
@@ -170,15 +166,23 @@ def process_file(args) -> None:
         new_contents = llm_service.get_text(results)[0]
         finish_reasons = llm_service.get_finish_reason(results)[0]
         stop_reasons = llm_service.get_stop_reason(results)[0]
+
+        prompt_ids_list = llm_service.get_prompt_tokenIDs(results)
+        response_ids_list = llm_service.get_response_tokenIDs(results)[0]
         
         cprint(new_contents, "New contents generated for the node")
-        candidates = []
+        best_node = {}
         for i, (new_content, finish_reason, stop_reason) in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
             # create a new node
+            token_rewards = reward_service.BS_predict_rewards(
+                prompt_ids=prompt_ids_list[i],
+                response_ids=response_ids_list[i]
+            )
             new_node = {
                 "index_list": node['index_list'] + [i],
                 "history_content": node['history_content'] + [node['node_content']],
                 "node_content": new_content,
+                "token_rewards": token_rewards,  # Add token rewards for the node
                 "is_final": finish_reason == 'length' or stop_reason is None,  # Check if the node is final based on finish reason or stop reason
                 "finish_reason": finish_reason,
                 "correctness": None,  # To be filled later
@@ -192,17 +196,13 @@ def process_file(args) -> None:
                 )
             
             node['child_nodes'].append(new_node)
-            candidates.append(node)
 
-
-#########################
-
-#########################
-
+            if best_node == {} or new_node['token_rewards'][-1] > best_node['token_rewards'][-1]:
+                best_node = new_node
 
         # if the node is not final, add it to the queue for further expansion
-        if not new_node['is_final']:
-            q.put(new_node)
+        if not best_node['is_final']:
+            q.put(best_node)
 
         data['step_tree'] = Root
 

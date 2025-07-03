@@ -5,11 +5,12 @@ This file is largely borrowed from OpenR (https://github.com/openreasoner/openr)
 import copy
 import traceback
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Any
 
 import requests
 
 from .infer_fns import (
+    _BS_verl_value_infer_fn,
     _verl_value_infer_fn,
     _math_shepherd_infer_fn,
     _skywork_infer_fn,
@@ -61,7 +62,10 @@ def get_prm_special_tokens(model_name, tokenizer):
     return prm_step_tag, step_tag_id, returned_token_ids
 
 
-def get_infer_fn(model_path, rm_serve_type='fastchat'):
+def get_infer_fn(model_path, rm_serve_type='fastchat', beam_search=False):
+    if beam_search:
+        return _BS_verl_value_infer_fn
+    
     if "verl" in model_path.lower():
         return _verl_value_infer_fn
     elif "skywork" in model_path.lower():
@@ -317,7 +321,15 @@ class RMRemoteCaller(RewardModelCallingFunction):
         legal_action: Optional[List[str]] = [],
         process: Optional[bool] = True,
         timeout: Optional[int] = 0,
+        prompt_ids: Any = None,
+        response_ids: Any = None,
     ) -> Union[List[int], List[List[int]]]:
+        if prompt_ids is not None and response_ids is not None:
+            input_str = (prompt_ids, response_ids)
+            return _reward_inference_fastchat(
+                input_str=input_str, model_name=self.model_name, controller_addr=self.controller_addr, timeout=timeout
+            )
+        
         if process:
             input_str = self.process_input(qa_pairs, verbose=verbose, legal_action=legal_action)
         else:
