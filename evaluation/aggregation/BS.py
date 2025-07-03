@@ -82,8 +82,11 @@ def main():
     dataset = []
     for json_file in json_files:
         data = load_json_file(json_file, encoding='utf-8')
+        if data is None:
+            timestamped_print(f"Skipping file {json_file} due to loading errors.", "ERROR")
+            continue
         dataset.extend(data if isinstance(data, list) else [data])
-        
+
     timestamped_print(f"Loaded data: {len(dataset)} records from {len(json_files)} files.", "INFO")
     
     correct = 0
