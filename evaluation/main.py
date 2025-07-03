@@ -28,11 +28,11 @@ def parse_args():
     parser.add_argument("--system_prompt", type=str, default="You are a helpful assistant.", help="System prompt for the model.")
     parser.add_argument("--user_prompt_template", type=str, default="{problem}\nPlease reason step by step, and put your final answer within \\boxed{{}}.", help="User prompt template.")
     # tree
-    parser.add_argument("expand_size", type=int, default=1, help="Number of expansions for tree_build.")
+    parser.add_argument("--expand_size", type=int, default=1, help="Number of expansions for tree_build.")
     # step tree
-    parser.add_argument("step_tag", type=str, default="\n\n", help="Tag for the step tree.")
+    parser.add_argument("--step_tag", type=str, default="\n\n", help="Tag for the step tree.")
     # entropy tree
-    parser.add_argument("ep_threshold", type=float, default=0.1, help="Entropy threshold for the entropy tree.")
+    parser.add_argument("--ep_threshold", type=float, default=0.1, help="Entropy threshold for the entropy tree.")
     # # Beam Search
     # parser.add_argument("--beam_size", type=int, default=1, help="Number of beams for beam search.")
     # parser.add_argument("--max_depth", type=int, default=1, help="Maximum depth for beam search.")
