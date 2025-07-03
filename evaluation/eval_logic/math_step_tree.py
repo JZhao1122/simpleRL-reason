@@ -7,7 +7,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, ".."))
 sys.path.append(root_dir)
 from framework.register import register_processor
-from utils.util import load_json, save_json, timestamped_print
+from utils.util import load_json, save_json, timestamped_print, cprint
 from infer_module.infer_vllm import LLM_Service
 from vllm import SamplingParams
 from math_verify import parse, verify
@@ -65,9 +65,13 @@ def check_finish(args: argparse.Namespace, output_filepath: str) -> bool:
         timestamped_print(f"Error loading JSON file {output_filepath}: {e}", "ERROR")
         return False
 
-    not_end = load_tree(record.get('step_tree', {}))
-    if not_end.qsize() > 0:
-        timestamped_print(f"Found {not_end.qsize()} non-final nodes in the step tree.", "INFO")
+    try:
+        not_end = load_tree(record.get('step_tree', {}))
+        if not_end.qsize() > 0:
+            timestamped_print(f"Found {not_end.qsize()} non-final nodes in the step tree.", "INFO")
+            return False
+    except Exception as e:
+        timestamped_print(f"Error processing step tree: {e}", "ERROR")
         return False
     
     return True
@@ -128,7 +132,9 @@ def process_file(args) -> None:
     )
 
     # BFS to build the tree
+    cprint(Root, "initial root node")
     q = load_tree(Root)
+    cprint(q, "initial queue")
     while q.qsize() > 0:
         node = q.get()
         cur_prompt = ''.join(node.history_content) + node.node_content
