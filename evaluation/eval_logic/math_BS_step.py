@@ -166,7 +166,7 @@ def process_file(args) -> None:
         finish_reasons = llm_service.get_finish_reason(results)[0]
         stop_reasons = llm_service.get_stop_reason(results)[0]
 
-        prompt_ids_list = llm_service.get_prompt_tokenIDs(results)
+        prompt_ids = llm_service.get_prompt_tokenIDs(results)[0]
         response_ids_list = llm_service.get_response_tokenIDs(results)[0]
         
         cprint(new_contents, "New contents generated for the node")
@@ -174,7 +174,7 @@ def process_file(args) -> None:
         for i, (new_content, finish_reason, stop_reason) in enumerate(zip(new_contents, finish_reasons, stop_reasons)):
             # create a new node
             token_rewards = reward_service.BS_predict_rewards(
-                prompt_ids=prompt_ids_list,
+                prompt_ids=prompt_ids,
                 response_ids=response_ids_list[i]
             )
             new_node = {
