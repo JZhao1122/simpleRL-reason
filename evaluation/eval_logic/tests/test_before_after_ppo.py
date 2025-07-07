@@ -128,7 +128,7 @@ print(llm_service.get_prompt_entropys(results_1)[0][1:])
 prompt_ids = llm_service.get_prompt_tokenIDs(results)[0]
 response_ids_list = llm_service.get_response_tokenIDs(results)[0]
 token_rewards = reward_service.BS_predict_rewards(
-    prompt_ids=[],
-    response_ids=prompt_ids + response_ids_list[0]
+    prompt_ids=[prompt_ids[1]],
+    response_ids=prompt_ids[1:] + response_ids_list[0]
 )
-print(token_rewards[1:])
+print(token_rewards)
