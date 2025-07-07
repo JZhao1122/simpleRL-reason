@@ -32,8 +32,15 @@ PPO_MINI_BATCH_SIZE=256
 # per GPU
 PPO_MICRO_BATCH_SIZE=2
 CLIP_RATIO=0.2
-KL_LOSS_COEF=0.001
-ENTROPY_COEFFIENT=0.001
+
+# For DeepScale
+CLIP_RATIO_LOW=0.2
+CLIP_RATIO_HIGH=0.28
+KL_LOSS_COEF=0
+ENTROPY_COEFFIENT=0
+
+# KL_LOSS_COEF=0.001
+# ENTROPY_COEFFIENT=0.001
 KL_LOSS_TYPE="low_var_kl"
 TEMPERATURE=1.0
 LOG_PROB_MICRO_BATCH_SIZE=160
@@ -198,6 +205,8 @@ python -m verl.trainer.main_ppo \
   actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=$PPO_MICRO_BATCH_SIZE \
   actor_rollout_ref.actor.entropy_coeff=$ENTROPY_COEFFIENT \
   actor_rollout_ref.actor.clip_ratio=$CLIP_RATIO \
+  actor_rollout_ref.actor.clip_ratio_low=$CLIP_RATIO_LOW \
+  actor_rollout_ref.actor.clip_ratio_high=$CLIP_RATIO_HIGH \
   actor_rollout_ref.actor.kl_loss_type=$KL_LOSS_TYPE \
   actor_rollout_ref.model.enable_gradient_checkpointing=True \
   actor_rollout_ref.actor.fsdp_config.param_offload=False \

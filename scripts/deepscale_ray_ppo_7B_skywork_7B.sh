@@ -9,8 +9,9 @@ conda activate zj_simrl
 which python
 
 export model_path=${NEW_HOME}/hf_models
-export data_path=${NEW_HOME}/hf_models/datasets--hkust-nlp--deepscaler_simplelr
+export data_path=${NEW_HOME}/hf_models/datasets--hkust-nlp--SimpleRL-Zoo-Data
 export output_path=${NEW_HOME}/_/simpleRL-reason/_outputs
+export NCCL_P2P_DISABLE=1
 
 export http_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
 export https_proxy=https://liurunze:ZYBAbtvlTtsdWcr8hhjdf1BzXyH10WiTYMrdEFzY3jOrsG6Y5j0QmRKHxgW3@aliyun-proxy.pjlab.org.cn:13128/
@@ -41,7 +42,8 @@ if [ "$RANK" -eq 0 ]; then
 
     bash scripts/train_ppo_math_tune_ray.sh \
         --model_name models--Qwen--Qwen2.5-7B \
-        --dataset_name data \
+        --critic_name models--Skywork--Skywork-o1-Open-PRM-Qwen-2.5-7B \
+        --dataset_name simplelr_qwen_level3to5 \
         --max_response_length 8192  \
         --train_batch_size 1024 \
         --rollout_n 8 \
