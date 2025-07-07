@@ -114,6 +114,34 @@ class LLM_Service:
         ]
         
         return entropys
+    
+    def get_prompt_entropys(self, request_results: List) -> List[List]:
+        '''get the prompts' entropys from the request results'''
+        def calculate_entropy(logprob_distribution) -> float:
+            if not logprob_distribution:
+                return 0.0
+
+            entropy = 0.0
+            for item in logprob_distribution.values():
+                log_prob = item.logprob
+
+                # 1. Convert log-probability to actual probability
+                # p(x) = e^(log_prob)
+                prob = math.exp(log_prob)
+
+                # 2. Add to the entropy sum: p(x) * log2(p(x))
+                # We check for prob > 0 to avoid math.log2(0) which is undefined.
+                if prob > 0:
+                    entropy += prob * math.log2(prob)
+
+            return -entropy
+
+        entropys = [
+            [calculate_entropy(logprob_distribution) for logprob_distribution in request_result.prompt_logprobs]
+            for request_result in request_results
+        ]
+
+        return entropys
 
     def get_prompt_tokenIDs(self, request_results: List) -> List[List]:
         prompt_token_ids = [
