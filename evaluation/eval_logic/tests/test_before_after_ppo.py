@@ -6,11 +6,11 @@ import queue
 current_dir = os.path.dirname(os.path.abspath('/cpfs02/user/liurunze/_/simpleRL-reason/evaluation/eval_logic/test_eval.ipynb'))
 root_dir = os.path.abspath(os.path.join(current_dir, ".."))
 sys.path.append(root_dir)
-from framework.register import register_processor
-from utils.util import load_json, save_json, timestamped_print
+# from framework.register import register_processor
+# from utils.util import load_json, save_json, timestamped_print
 from infer_module.infer_vllm import LLM_Service
 from vllm import SamplingParams
-from math_verify import parse, verify
+# from math_verify import parse, verify
 
 llm_service1 = LLM_Service(model_path="/cpfs02/user/liurunze/hf_models/models--Qwen--Qwen2.5-7B", tensor_parallel_size=1, device='cuda:0')
 

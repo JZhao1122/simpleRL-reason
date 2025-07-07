@@ -47,8 +47,8 @@ if [ "$RANK" -eq 0 ]; then
         --max_response_length 8192  \
         --train_batch_size 1024 \
         --rollout_n 8 \
-        --kl_loss_coef 0.0001 \
-        --entropy_coeffient 0.001 \
+        --kl_loss_coef 0 \
+        --entropy_coeffient 0 \
         --rollout_gpu_memory_util 0.4 \
         --rollout_tp 2 \
         --save_freq 5
