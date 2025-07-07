@@ -52,7 +52,8 @@ sampling_params = SamplingParams(
 )
 
 # load the base model
-llm_service1 = LLM_Service(model_path="/cpfs02/user/liurunze/hf_models/models--Qwen--Qwen2.5-7B", tensor_parallel_size=1, device='cuda:0')
+# llm_service1 = LLM_Service(model_path="/cpfs02/user/liurunze/hf_models/models--Qwen--Qwen2.5-7B", tensor_parallel_size=1, device='cuda:0')
+llm_service1 = LLM_Service(model_path="/cpfs02/user/liurunze/_/simpleRL-reason/_outputs/checkpoints/verl-ppo_models--Qwen--Qwen2.5-7B_models--Skywork--Skywork-o1-Open-PRM-Qwen-2.5-7B_simplelr_qwen_level3to5_max_response8192_batch1024_rollout8_klcoef0.0001_entcoef0.001/global_step_90/actor/huggingface", tensor_parallel_size=1, device='cuda:0')
 llm_service = llm_service1
 results = llm_service.inference(llm_service.build_prompt(messages), sampling_params)
 # print(llm_service.get_prompt_tokenIDs(results))
