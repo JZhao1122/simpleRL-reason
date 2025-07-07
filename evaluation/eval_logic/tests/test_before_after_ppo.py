@@ -61,8 +61,34 @@ results = llm_service.inference(llm_service.build_prompt(messages), sampling_par
 # print(llm_service.get_response_tokens(results))
 
 # unload the model to free up memory
-unload_model(llm_service)
-unload_model(llm_service1)
+import gc
+import ray
+import torch
+
+"""
+Unload the model and clear resources.
+"""
+try:
+    del llm_service
+    # if tokenizer:
+    #     del tokenizer
+except Exception as e:
+    print(f"Failed to unload model: {e}")
+finally:
+    gc.collect()
+    torch.cuda.empty_cache()
+    ray.shutdown()
+try:
+    del llm_service1
+    # if tokenizer:
+    #     del tokenizer
+except Exception as e:
+    print(f"Failed to unload model: {e}")
+finally:
+    gc.collect()
+    torch.cuda.empty_cache()
+    ray.shutdown()
+
 
 # load the RL model
 llm_service2 = LLM_Service(model_path="/cpfs02/user/liurunze/_/simpleRL-reason/_outputs/checkpoints/verl-ppo_models--Qwen--Qwen2.5-7B_models--Skywork--Skywork-o1-Open-PRM-Qwen-2.5-7B_simplelr_qwen_level3to5_max_response8192_batch1024_rollout8_klcoef0.0001_entcoef0.001/global_step_90/actor/huggingface", tensor_parallel_size=1, device='cuda:0')
