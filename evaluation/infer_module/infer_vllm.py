@@ -12,13 +12,14 @@ from typing import Any, Dict, List, Tuple
 
 
 class LLM_Service:
-    def __init__(self, model_path: str, tensor_parallel_size: int):
+    def __init__(self, model_path: str, tensor_parallel_size: int, device: str):
         # Load the model and tokenizer
         timestamped_print(f"Loading model from {model_path}", level="INFO")
         self.model = LLM(
             model=model_path,
             tensor_parallel_size=tensor_parallel_size,
-            enable_chunked_prefill=True
+            enable_chunked_prefill=True,
+            device=device
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         timestamped_print(f"VLLM model loaded successfully", level="INFO")
