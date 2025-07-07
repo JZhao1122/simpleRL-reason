@@ -143,7 +143,7 @@ import gc
 import ray
 import torch
 try:
-    del llm_service
+    del llm_service1
     # del tokenizer
 except Exception as e:
     print(f"Failed to unload model: {e}")
