@@ -28,7 +28,7 @@ class LLM_Service:
         prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         return prompt
     
-    def inference(self, prompt: str, sampling_params: SamplingParams):
+    def inference(self, prompt: str, sampling_params: SamplingParams, use_tqdm: bool = True):
         cprint(prompt, "Prompt")
         
         # Perform inference
@@ -36,6 +36,50 @@ class LLM_Service:
         
         return request_results
     
+    def token_level_inference(self, prompt: str, sampling_params: SamplingParams):
+        '''
+        custom token-level inference function for vLLM
+        This function generates tokens one by one, allowing for more control over the generation process.
+        The sampling_params.n should be set to 1.
+        Return is Dict{
+            "content": String,  # The generated text content
+            "tokens": List of generated tokens,
+            "token_rewards": List of rewards for each token,
+            "entropies": List of entropy for each token,
+        }
+        '''
+        assert sampling_params.n == 1, "For token-level inference, sampling_params.n should be set to 1."
+        cprint(prompt, "Prompt")
+        max_tokens = sampling_params.max_tokens
+
+        content = ""
+        tokens = []
+        token_rewards = []
+        entropies = []
+        # Perform token-level inference
+        for _ in range(max_tokens):
+            print('*')
+            # Generate the next token
+            sampling_params.max_tokens = 1
+            request_results = self.inference(prompt, sampling_params, use_tqdm=False)
+            
+            # get the text, token and entropy from the request results
+            text = self.get_text(request_results)[0][0]
+            token = self.get_response_tokens(request_results)[0][0]
+            entropy = self.get_entropys(request_results)[0][0]
+
+            # Append the generated token to the content
+            content += text
+            tokens += token
+            entropies += entropy
+        
+        return {
+            "content": content,
+            "tokens": tokens,
+            "token_rewards": token_rewards,
+            "entropies": entropies
+        }
+
     def get_text(self, request_results: List) -> List[List]:
         # Extract text from the request results
         text_results = [
