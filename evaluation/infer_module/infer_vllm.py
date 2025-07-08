@@ -59,7 +59,7 @@ class LLM_Service:
         entropies = []
         # Perform token-level inference
         for _ in range(max_tokens):
-            print('*')
+            print('*', end='')
             # Generate the next token
             sampling_params.max_tokens = 1
             request_results = self.inference(prompt, sampling_params, use_tqdm=False, verbose=False)
