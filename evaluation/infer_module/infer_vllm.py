@@ -28,11 +28,12 @@ class LLM_Service:
         prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         return prompt
     
-    def inference(self, prompt: str, sampling_params: SamplingParams, use_tqdm: bool = True):
-        cprint(prompt, "Prompt")
+    def inference(self, prompt: str, sampling_params: SamplingParams, use_tqdm: bool = True, verbose: bool = True):
+        if verbose:
+            cprint(prompt, "Prompt")
         
         # Perform inference
-        request_results = self.model.generate(prompt, sampling_params)
+        request_results = self.model.generate(prompt, sampling_params, use_tqdm=use_tqdm)
         
         return request_results
     
@@ -61,7 +62,7 @@ class LLM_Service:
             print('*')
             # Generate the next token
             sampling_params.max_tokens = 1
-            request_results = self.inference(prompt, sampling_params, use_tqdm=False)
+            request_results = self.inference(prompt, sampling_params, use_tqdm=False, verbose=False)
             
             # get the text, token and entropy from the request results
             text = self.get_text(request_results)[0][0]
@@ -72,6 +73,7 @@ class LLM_Service:
             content += text
             tokens += token
             entropies += entropy
+            prompt += text
         
         return {
             "content": content,
