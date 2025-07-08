@@ -69,6 +69,10 @@ class LLM_Service:
             token = self.get_response_tokens(request_results)[0][0]
             entropy = self.get_entropys(request_results)[0][0]
 
+            if not text or not token:
+                # If no text or token is generated, break the loop
+                break
+
             # Append the generated token to the content
             content += text
             tokens += token
