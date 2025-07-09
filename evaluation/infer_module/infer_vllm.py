@@ -116,7 +116,7 @@ class LLM_Service:
             content += text
             tokens += token
             entropies += entropy
-            response_token_ids += int(token_id)
+            response_token_ids += token_id
             prompt += text
         
         if reward_mode == "token":
@@ -213,7 +213,7 @@ class LLM_Service:
         if verbose:
             print(f"Sampled token: {token}, Token ID: {token_id}")
 
-        return text, [token], [token_id]
+        return text, [token], [int(token_id)]
 
     def get_text(self, request_results: List) -> List[List]:
         # Extract text from the request results
