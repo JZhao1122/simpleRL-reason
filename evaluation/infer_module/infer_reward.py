@@ -44,13 +44,15 @@ class Reward_Service:
     
     def BS_predict_rewards(self, 
                       prompt_ids: List,
-                      response_ids: List) -> List:
+                      response_ids: List,
+                      cache_mode: str) -> List:
         '''Specialized method for Beam Search'''
         step_scores, token_scores = self.rm_call(
             qa_pairs=None, 
             verbose=True,
             prompt_ids=prompt_ids,
             response_ids=response_ids,
+            cache_mode=cache_mode
         )
         assert len(token_scores) == len(prompt_ids) + len(response_ids), \
             f"Expected {len(prompt_ids) + len(response_ids)} token scores, got {len(token_scores)}"

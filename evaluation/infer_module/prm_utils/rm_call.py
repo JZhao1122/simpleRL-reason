@@ -176,7 +176,13 @@ def _reward_inference_fastchat(input_str, model_name, controller_addr="http://lo
         type = "beam_search"
     else:
         type = "normal"
-    gen_params = {"input_str": input_str, "type": type}
+    input_str = input_str[:-1]
+    
+    gen_params = {
+        "input_str": input_str, 
+        "type": type, 
+        "cache_mode": input_str[-1]
+    }
     try:
         if timeout > 0:
             response = requests.post(worker_addr + "/worker_reward_inference", headers=headers, json=gen_params, stream=True, timeout=timeout)
@@ -330,10 +336,10 @@ class RMRemoteCaller(RewardModelCallingFunction):
         timeout: Optional[int] = 0,
         prompt_ids: Any = None,
         response_ids: Any = None,
-        past_key_values: Any = None,
+        cache_mode: str = "none",
     ) -> Union[List[int], List[List[int]]]:
         if prompt_ids is not None and response_ids is not None:
-            input_str = [prompt_ids, response_ids]
+            input_str = [prompt_ids, response_ids, cache_mode]
             return _reward_inference_fastchat(
                 input_str=input_str, model_name=self.model_name, controller_addr=self.controller_addr, timeout=timeout, beam_search=True
             )

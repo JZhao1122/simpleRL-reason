@@ -218,7 +218,7 @@ class ModelWorker(BaseModelWorker):
                     step_tag_id=self.step_tag_id
                 )
                 # input_str = (prompt_ids, response_ids) => both dim=1
-                reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
+                reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str, cache_mode=params["cache_mode"])]
             elif isinstance(input_str, list):
                 reward = [r if isinstance(r, list) else r.tolist() for r in self.infer_fn(input_str)]
             else:

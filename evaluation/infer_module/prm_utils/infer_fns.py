@@ -39,7 +39,7 @@ def _math_shepherd_infer_fn(input_str: str, model, tokenizer, device, returned_t
     return (rewards[0], values[0][0])
 
 @torch.inference_mode()
-def _BS_verl_value_infer_fn(pr_pair: str, model, tokenizer, device, step_tag_id, step_tag='\n', special_tag_id=151652):
+def _BS_verl_value_infer_fn(pr_pair: str, model, tokenizer, device, step_tag_id, step_tag='\n', special_tag_id=151652, cache_mode='none'):
     rewards = []
     values = []
 
@@ -48,7 +48,7 @@ def _BS_verl_value_infer_fn(pr_pair: str, model, tokenizer, device, step_tag_id,
     response_ids = torch.tensor(response_ids, device=device)
     input_ids = torch.cat([prompt_ids, response_ids]).unsqueeze(0).to(device)
 
-    _, _, scores = model(input_ids=input_ids, return_probs=True)
+    _, _, scores = model(input_ids=input_ids, return_probs=True, cache_mode=cache_mode)
     token_scores = scores[0][:]
     values.append(copy.deepcopy(token_scores.tolist()))
 

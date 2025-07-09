@@ -79,6 +79,7 @@ class LLM_Service:
         entropies = []
         prompt_token_ids = []
         response_token_ids = []
+        initial = True
         # Perform token-level inference
         for i in range(max_tokens):
             print('*', end='')
@@ -116,10 +117,14 @@ class LLM_Service:
                     max_candidates=max_candidates,
                     reward_service=reward_service,
                     combine_prob=combine_prob,
+                    initial=initial,
                     verbose=verbose
                 )
                 if result:
                     text, token, token_id = result
+            
+            if i == 0:
+                initial = False
 
             # Append the generated token to the content
             content += text
@@ -165,6 +170,7 @@ class LLM_Service:
             sampling_params: SamplingParams, 
             max_candidates: int = None,
             reward_service: Reward_Service = None,
+            initial: bool = False,
             verbose: bool = False,
             combine_prob: callable = None
         ): # -> text, token, token_id
@@ -186,15 +192,25 @@ class LLM_Service:
 
         new_distribution = {}
         id2token = {}
-        id2cache = {}
+        cache_mode = None
         for i, (key, value) in enumerate(
                 sorted(log_distribution.items(), key=lambda item: item[1].logprob, reverse=True)
             ):
+            if i == 0:
+                if initial:
+                    cache_mode = 'initial'
+                else:
+                    cache_mode = 'update'
+            else:
+                cache_mode = 'infer'
+            
             if i == max_candidates:
                 break
+            
             reward = reward_service.BS_predict_rewards(
                 prompt_ids=prompt_ids,
                 response_ids=[int(key)],
+                cache_mode = cache_mode
             )[0]
 
             if verbose:
