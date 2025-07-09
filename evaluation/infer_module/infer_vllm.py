@@ -121,9 +121,8 @@ class LLM_Service:
         
         if reward_mode == "token":
             # If reward mode is 'token', calculate the token reward
-            if verbose:
-                print(prompt_token_ids)
-                print(response_token_ids)
+            print(prompt_token_ids)
+            print(response_token_ids)
             origin_token_rewards = reward_service.BS_predict_rewards(
                 prompt_ids=prompt_token_ids,
                 response_ids=response_token_ids
