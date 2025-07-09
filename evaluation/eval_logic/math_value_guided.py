@@ -106,8 +106,8 @@ def process_file(args) -> None:
             logprobs=20,
             prompt_logprobs=20,
         )
-        combin_module = importlib.import_module(".eval_utils.combine_probs")
-        combine_prob = getattr(combin_module, args.combine_prob)
+        combine_prob = importlib.import_module("eval_logic.eval_utils.combine_probs")
+        combine_prob = getattr(combine_prob, args.combine_prob)
 
         prompt = llm_service.build_prompt(messages)
         result = llm_service.token_level_inference(
