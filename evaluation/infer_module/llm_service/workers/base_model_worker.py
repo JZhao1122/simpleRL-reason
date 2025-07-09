@@ -185,10 +185,16 @@ async def api_generate(request: Request):
 
 @app.post("/worker_reward_inference")
 async def reward_inference(request: Request):
-    params = await request.json()
-    await acquire_worker_semaphore()
-    output = await asyncio.to_thread(worker.reward_inference_gate, params)
-    release_worker_semaphore()
+    try:
+        params = await request.json()
+        await acquire_worker_semaphore()
+        output = await asyncio.to_thread(worker.reward_inference_gate, params)
+        release_worker_semaphore()
+    except Exception as e:
+        print(f"Error in reward inference: {e}")
+    
+    print(f"Reward inference output: {output}")
+
     return JSONResponse(output)
 
 
