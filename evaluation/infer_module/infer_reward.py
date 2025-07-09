@@ -46,7 +46,7 @@ class Reward_Service:
                       prompt_ids: List,
                       response_ids: List) -> List:
         '''Specialized method for Beam Search'''
-        step_scores, token_scores, current_past_key_values = self.rm_call(
+        step_scores, token_scores = self.rm_call(
             qa_pairs=None, 
             verbose=True,
             prompt_ids=prompt_ids,
@@ -55,7 +55,7 @@ class Reward_Service:
         assert len(token_scores) == len(prompt_ids) + len(response_ids), \
             f"Expected {len(prompt_ids) + len(response_ids)} token scores, got {len(token_scores)}"
         
-        return token_scores[-len(response_ids):], current_past_key_values
+        return token_scores[-len(response_ids):]
     
     # def build_prompt(self, messages: List[List[Dict]]) -> Dict[str, torch.Tensor]:
     #     try:
