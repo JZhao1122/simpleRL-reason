@@ -33,6 +33,12 @@ def parse_args():
     parser.add_argument("--step_tag", type=str, default="\n\n", help="Tag for the step tree.")
     # entropy tree
     parser.add_argument("--ep_threshold", type=float, default=0.1, help="Entropy threshold for the entropy tree.")
+    # value guiding
+    parser.add_argument("--reward_mode", type=str, choices=['none', 'token', 'entropy'], default='none', help="Mode for reward calculation.")
+    parser.add_argument("--decode_mode", type=str, choices=['none', 'token', 'entropy'], default='none', help="Mode for decoding.")
+    parser.add_argument("--max_candidates", type=int, default=5, help="Maximum number of candidates for sampling.")
+    parser.add_argument("--entropy_threshold", type=float, default=0.5, help="Entropy threshold for filtering candidates.")
+    parser.add_argument("--combine_prob", type=str, default="multiple", help="Function to combine probabilities.")
     # # Beam Search
     # parser.add_argument("--beam_size", type=int, default=1, help="Number of beams for beam search.")
     # parser.add_argument("--max_depth", type=int, default=1, help="Maximum depth for beam search.")
