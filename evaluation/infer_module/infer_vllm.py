@@ -78,7 +78,7 @@ class LLM_Service:
             request_results = self.inference(prompt, sampling_params, use_tqdm=False, verbose=False)
 
             if i == 0:
-                prompt_token_ids = self.get_prompt_tokenIDs(request_results)[0][0]
+                prompt_token_ids = self.get_prompt_tokenIDs(request_results)[0]
             
             # get the text, token and entropy from the request results
             text = self.get_text(request_results)[0][0]
