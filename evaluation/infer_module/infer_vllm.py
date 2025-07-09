@@ -2,12 +2,15 @@ import re
 import math
 import io
 import signal
+import numpy as np
+from collections import Counter
 from copy import *
 from typing import List
 from utils.util import timestamped_print, cprint
 from contextlib import redirect_stdout
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
+from infer_reward import Reward_Service
 from typing import Any, Dict, List, Tuple
 
 
@@ -37,7 +40,15 @@ class LLM_Service:
         
         return request_results
     
-    def token_level_inference(self, prompt: str, sampling_params: SamplingParams):
+    def token_level_inference(
+            self, 
+            prompt: str, 
+            sampling_params: SamplingParams, 
+            reward_mode: str = "none", # 'token'
+            decode_mode: str = "none",  # 'token' or 'entropy'
+            entropy_threshold: float = 0.02,
+            reward_service: Reward_Service = None,
+        ):
         '''
         custom token-level inference function for vLLM
         This function generates tokens one by one, allowing for more control over the generation process.
@@ -57,34 +68,132 @@ class LLM_Service:
         tokens = []
         token_rewards = []
         entropies = []
+        prompt_token_ids = []
+        response_token_ids = []
         # Perform token-level inference
-        for _ in range(max_tokens):
+        for i in range(max_tokens):
             print('*', end='')
             # Generate the next token
             sampling_params.max_tokens = 1
             request_results = self.inference(prompt, sampling_params, use_tqdm=False, verbose=False)
+
+            if i == 0:
+                prompt_token_ids = self.get_prompt_tokenIDs(request_results)[0][0]
             
             # get the text, token and entropy from the request results
             text = self.get_text(request_results)[0][0]
             token = self.get_response_tokens(request_results)[0][0]
             entropy = self.get_entropys(request_results)[0][0]
+            token_id = self.get_response_tokenIDs(request_results)[0][0]
 
             if not text or not token:
+                print(" <end> No text or token generated, breaking the loop.")
                 # If no text or token is generated, break the loop
                 break
+
+            if text in sampling_params.stop:
+                print(" <stop> Stop token reached, breaking the loop.")
+                # If the stop token is reached, break the loop
+                break
+            
+            if decode_mode != "none":
+                result = self.customized_decode(
+                    prompt_ids = prompt_token_ids + response_token_ids,
+                    request_results=request_results,
+                    decode_mode=decode_mode,
+                    entropy=entropy, 
+                    sampling_params=sampling_params,
+                    entropy_threshold=entropy_threshold,
+                    reward_service=reward_service,
+                )
+                if result:
+                    text, token, token_id = result
 
             # Append the generated token to the content
             content += text
             tokens += token
             entropies += entropy
+            response_token_ids += token_id
             prompt += text
         
+        if reward_mode == "token":
+            # If reward mode is 'token', calculate the token reward
+            origin_token_rewards = reward_service.BS_predict_rewards(
+                prompt_ids=prompt_token_ids,
+                response_ids=response_token_ids
+            )
+            assert len(token_rewards) == len(tokens), "The length of token rewards should match the length of tokens."
+            token_rewards = origin_token_rewards
+        
+        entropy_indices = [i for i, entropy in enumerate(entropies) if entropy >= entropy_threshold]
+
         return {
             "content": content,
             "tokens": tokens,
             "token_rewards": token_rewards,
-            "entropies": entropies
+            "entropies": entropies,
+            "entropy_indices": entropy_indices,
+            "prompt_token_ids": prompt_token_ids,
+            "response_token_ids": response_token_ids,
         }
+    
+    def customized_decode(
+            self, 
+            prompt_ids: List[int], 
+            request_results: Any, 
+            decode_mode: str,
+            entropy: float,
+            entropy_threshold: float, 
+            sampling_params: SamplingParams, 
+            reward_service: Reward_Service = None,
+        ): # -> text, token, token_id
+        if decode_mode == 'entropy':
+            if entropy < entropy_threshold:
+                return None
+        
+        '''
+        {
+            15: Logprob(logprob=-0.04350040480494499, rank=1, decoded_token='0'), 
+            16: Logprob(logprob=-5.1685004234313965, rank=2, decoded_token='1'), 
+            8948: Logprob(logprob=-17.641645431518555, rank=17952, decoded_token='system'), 
+        }
+        '''
+        log_distribution = self.get_logprobs(request_results)[0][0][0]
+        new_log_distribution = {}
+        id2token = {}
+        for key, value in log_distribution.items():
+            reward = reward_service.BS_predict_rewards(
+                prompt_ids=prompt_ids,
+                response_ids=[int(key)]
+            )[0]
+            new_log_distribution[key] = math.exp(value.logprob) * reward
+            id2token[key] = value.decoded_token
+        
+        def softmax_sample_numpy(scores_dict: dict):
+            if not scores_dict:
+                raise ValueError("Input dictionary cannot be empty.")
+            
+            items = list(scores_dict.keys())
+            scores = np.array(list(scores_dict.values()), dtype=np.float64)
+
+            if len(items) == 1:
+                return {items[0]: 1.0}
+
+            # --- 1. Softmax Normalization (Numerically stable) ---
+            scores -= np.max(scores)  # Subtract max for stability
+            exps = np.exp(scores)
+            probabilities = exps / np.sum(exps)
+
+            # --- 2. Weighted Random Sampling ---
+            sampled_item = np.random.choice(items, p=probabilities)
+
+            return items, probabilities
+        
+        token_id, prob = softmax_sample_numpy(new_log_distribution)
+        token = id2token[token_id]
+        text = token
+
+        return text, [token], [token_id]
 
     def get_text(self, request_results: List) -> List[List]:
         # Extract text from the request results
