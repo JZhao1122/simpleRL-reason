@@ -176,10 +176,9 @@ def _reward_inference_fastchat(input_str, model_name, controller_addr="http://lo
         type = "beam_search"
     else:
         type = "normal"
-    input_str = input_str[:-1]
     
     gen_params = {
-        "input_str": input_str, 
+        "input_str": input_str[:-1], 
         "type": type, 
         "cache_mode": input_str[-1]
     }
