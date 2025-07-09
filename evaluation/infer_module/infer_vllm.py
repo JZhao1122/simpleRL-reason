@@ -48,6 +48,7 @@ class LLM_Service:
             decode_mode: str = "none",  # 'token' or 'entropy'
             entropy_threshold: float = 0.02,
             reward_service: Reward_Service = None,
+            verbose: bool = False,
         ):
         '''
         custom token-level inference function for vLLM
@@ -61,7 +62,8 @@ class LLM_Service:
         }
         '''
         assert sampling_params.n == 1, "For token-level inference, sampling_params.n should be set to 1."
-        cprint(prompt, "Prompt")
+        if verbose:
+            cprint(prompt, "Prompt")
         max_tokens = sampling_params.max_tokens
 
         content = ""
@@ -105,6 +107,7 @@ class LLM_Service:
                     sampling_params=sampling_params,
                     entropy_threshold=entropy_threshold,
                     reward_service=reward_service,
+                    verbose=verbose
                 )
                 if result:
                     text, token, token_id = result
@@ -118,6 +121,9 @@ class LLM_Service:
         
         if reward_mode == "token":
             # If reward mode is 'token', calculate the token reward
+            if verbose:
+                print(prompt_token_ids)
+                print(response_token_ids)
             origin_token_rewards = reward_service.BS_predict_rewards(
                 prompt_ids=prompt_token_ids,
                 response_ids=response_token_ids
@@ -146,6 +152,7 @@ class LLM_Service:
             entropy_threshold: float, 
             sampling_params: SamplingParams, 
             reward_service: Reward_Service = None,
+            verbose: bool = False
         ): # -> text, token, token_id
         if decode_mode == 'entropy':
             if entropy < entropy_threshold:
@@ -160,7 +167,8 @@ class LLM_Service:
         '''
         log_distribution = self.get_logprobs(request_results)[0][0][0]
 
-        print("Log distribution:", log_distribution)
+        if verbose:
+            print("Log distribution:", log_distribution)
 
         new_log_distribution = {}
         id2token = {}
@@ -170,12 +178,14 @@ class LLM_Service:
                 response_ids=[int(key)]
             )[0]
 
-            print(f"Key: {key}, Logprob: {value.logprob}, Decoded Token: {value.decoded_token}, Reward: {reward}")
+            if verbose:
+                print(f"Key: {key}, Logprob: {value.logprob}, Decoded Token: {value.decoded_token}, Reward: {reward}")
 
             new_log_distribution[key] = math.exp(value.logprob) * reward
             id2token[key] = value.decoded_token
         
-        print("New log distribution:", new_log_distribution)
+        if verbose:
+            print("New log distribution:", new_log_distribution)
 
         def norm_sample(scores_dict: dict):
             if not scores_dict:
@@ -199,7 +209,8 @@ class LLM_Service:
         token = id2token[token_id]
         text = token
 
-        print(f"Sampled token: {token}, Token ID: {token_id}")
+        if verbose:
+            print(f"Sampled token: {token}, Token ID: {token_id}")
 
         return text, [token], [token_id]
 
