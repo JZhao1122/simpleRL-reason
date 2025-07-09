@@ -186,6 +186,8 @@ def _reward_inference_fastchat(input_str, model_name, controller_addr="http://lo
         reward = results["reward"]
     except Exception as e:
         print(f"Error in _reward_inference_fastchat: {e}")
+        print(f"Model name: {model_name}, Controller address: {controller_addr}, Worker address: {worker_addr}")
+        print(f"gen_params: {gen_params}")
         for i in range(len(input_str)):
             print(response)
             # print(f'input_str {i}: {input_str[i]}')
