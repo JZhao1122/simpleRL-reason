@@ -88,7 +88,7 @@ class PRM_MODEL(PreTrainedModelWrapper):
 
         self._init_weights(**v_head_kwargs)
         
-        self.past_key_values = None
+        self.id2cache = {}
 
     def _init_weights(self, **kwargs):
         r"""
@@ -145,9 +145,10 @@ class PRM_MODEL(PreTrainedModelWrapper):
         else:
             print("Using the past_key_values")
             kwargs["past_key_values"] = self.past_key_values
+            kwargs["use_cache"] = True  # this is needed for the past_key_values to be returned
 
-        if self.is_peft_model and self.pretrained_model.active_peft_config.peft_type == "PREFIX_TUNING":
-            kwargs.pop("past_key_values")
+        # if self.is_peft_model and self.pretrained_model.active_peft_config.peft_type == "PREFIX_TUNING":
+        #     kwargs.pop("past_key_values")
 
         base_model_output = self.pretrained_model(
             input_ids=input_ids,
@@ -172,16 +173,16 @@ class PRM_MODEL(PreTrainedModelWrapper):
         # if lm_logits.dtype != torch.float32:
         #     lm_logits = lm_logits.float()
 
-        if return_past_key_values:
-            raise NotImplementedError(
-                "The `return_past_key_values` argument is not supported in this implementation. "
-                "Please remove it from the call to the model."
-            )
-            return (lm_logits, loss, value, base_model_output.past_key_values)
-        else:
-            lm_logits = None
-            loss = None
-            return (lm_logits, loss, value)
+        # if return_past_key_values:
+        #     raise NotImplementedError(
+        #         "The `return_past_key_values` argument is not supported in this implementation. "
+        #         "Please remove it from the call to the model."
+        #     )
+        #     return (lm_logits, loss, value, base_model_output.past_key_values)
+        # else:
+        lm_logits = None
+        loss = None
+        return (lm_logits, loss, value)
 
     def generate(self, *args, **kwargs):
         r"""

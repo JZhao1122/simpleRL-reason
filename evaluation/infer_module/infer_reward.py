@@ -1,5 +1,5 @@
 import torch
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from utils.util import timestamped_print, cprint
 from .prm_utils.rm_call import (
@@ -44,18 +44,19 @@ class Reward_Service:
     
     def BS_predict_rewards(self, 
                       prompt_ids: List,
-                      response_ids: List) -> List:
+                      response_ids: List,
+                      past_key_values: Any) -> List:
         '''Specialized method for Beam Search'''
-        step_scores, token_scores = self.rm_call(
+        step_scores, token_scores, current_past_key_values = self.rm_call(
             qa_pairs=None, 
             verbose=True,
             prompt_ids=prompt_ids,
-            response_ids=response_ids
+            response_ids=response_ids,
         )
         assert len(token_scores) == len(prompt_ids) + len(response_ids), \
             f"Expected {len(prompt_ids) + len(response_ids)} token scores, got {len(token_scores)}"
         
-        return token_scores[-len(response_ids):]
+        return token_scores[-len(response_ids):], current_past_key_values
     
     # def build_prompt(self, messages: List[List[Dict]]) -> Dict[str, torch.Tensor]:
     #     try:

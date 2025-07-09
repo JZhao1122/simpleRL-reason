@@ -134,7 +134,7 @@ class LLM_Service:
             # print(type(prompt_token_ids[0]))
             # print(type(response_token_ids))
             # print(type(response_token_ids[-1]))
-            origin_token_rewards = reward_service.BS_predict_rewards(
+            origin_token_rewards, _ = reward_service.BS_predict_rewards(
                 prompt_ids=prompt_token_ids,
                 response_ids=response_token_ids
             )
@@ -186,6 +186,7 @@ class LLM_Service:
 
         new_distribution = {}
         id2token = {}
+        id2cache = {}
         for i, (key, value) in enumerate(
                 sorted(log_distribution.items(), key=lambda item: item[1].logprob, reverse=True)
             ):
@@ -193,7 +194,7 @@ class LLM_Service:
                 break
             reward = reward_service.BS_predict_rewards(
                 prompt_ids=prompt_ids,
-                response_ids=[int(key)]
+                response_ids=[int(key)],
             )[0]
 
             if verbose:

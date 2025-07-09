@@ -330,6 +330,7 @@ class RMRemoteCaller(RewardModelCallingFunction):
         timeout: Optional[int] = 0,
         prompt_ids: Any = None,
         response_ids: Any = None,
+        past_key_values: Any = None,
     ) -> Union[List[int], List[List[int]]]:
         if prompt_ids is not None and response_ids is not None:
             input_str = [prompt_ids, response_ids]

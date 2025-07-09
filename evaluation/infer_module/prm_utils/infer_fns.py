@@ -56,7 +56,7 @@ def _BS_verl_value_infer_fn(pr_pair: str, model, tokenizer, device, step_tag_id,
     del input_ids, scores, prompt_ids, response_ids
     torch.cuda.empty_cache()
 
-    return (rewards[0], values[0])
+    return (list(rewards[0]), list(values[0]))
 
 @torch.inference_mode()
 def _verl_value_infer_fn(qa_pairs: str, model, tokenizer, device, step_tag_id, step_tag='\n', special_tag_id=151652):
