@@ -121,16 +121,16 @@ class LLM_Service:
         
         if reward_mode == "token":
             # If reward mode is 'token', calculate the token reward
-            print(type(prompt_token_ids))
-            print(type(prompt_token_ids[0]))
-            print(type(response_token_ids))
-            print(type(response_token_ids[-1]))
+            # print(type(prompt_token_ids))
+            # print(type(prompt_token_ids[0]))
+            # print(type(response_token_ids))
+            # print(type(response_token_ids[-1]))
             origin_token_rewards = reward_service.BS_predict_rewards(
                 prompt_ids=prompt_token_ids,
                 response_ids=response_token_ids
             )
-            assert len(token_rewards) == len(tokens), "The length of token rewards should match the length of tokens."
             token_rewards = origin_token_rewards
+            assert len(token_rewards) == len(tokens), "The length of token rewards should match the length of tokens."
         
         entropy_indices = [i for i, entropy in enumerate(entropies) if entropy >= entropy_threshold]
 
