@@ -68,6 +68,7 @@ class LLM_Service:
             "entropies": List of entropy for each token,
         }
         '''
+        copy_sampling_params = deepcopy(sampling_params)
         assert sampling_params.n == 1, "For token-level inference, sampling_params.n should be set to 1."
         if verbose:
             cprint(prompt, "Prompt")
@@ -143,6 +144,8 @@ class LLM_Service:
         
         entropy_indices = [i for i, entropy in enumerate(entropies) if entropy >= entropy_threshold]
 
+        sampling_params = copy_sampling_params
+
         return {
             "content": content,
             "tokens": tokens,
@@ -184,7 +187,9 @@ class LLM_Service:
 
         new_distribution = {}
         id2token = {}
-        for i, (key, value) in enumerate(log_distribution.items()):
+        for i, (key, value) in enumerate(
+                sorted(log_distribution.items(), key=lambda item: item[1].logprob, reverse=True)
+            ):
             if i == max_candidates:
                 break
             reward = reward_service.BS_predict_rewards(
