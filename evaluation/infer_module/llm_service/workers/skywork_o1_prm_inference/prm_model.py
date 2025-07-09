@@ -164,7 +164,7 @@ class PRM_MODEL(PreTrainedModelWrapper):
 
         if cache_mode == 'update':
             print("Updating the past_key_values")
-            target_id = int(input_ids[0][-1])
+            target_id = int(input_ids[0][-2])
             self.past_key_values = self.id2cache[target_id]
             self.id2cache = {}
 
