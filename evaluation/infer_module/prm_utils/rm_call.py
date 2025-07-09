@@ -185,6 +185,7 @@ def _reward_inference_fastchat(input_str, model_name, controller_addr="http://lo
         results = response.json()
         reward = results["reward"]
     except Exception as e:
+        print(f"Error in _reward_inference_fastchat: {e}")
         for i in range(len(input_str)):
             print(response)
             # print(f'input_str {i}: {input_str[i]}')

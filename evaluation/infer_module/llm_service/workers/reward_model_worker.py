@@ -200,6 +200,7 @@ class ModelWorker(BaseModelWorker):
 
     @torch.inference_mode()
     def reward_inference_gate(self, params):
+        print("Entering reward_inference_gate")
         input_str = params["input_str"]
         print(f"params is {params}")
         if params['type'] == 'beam_search':
