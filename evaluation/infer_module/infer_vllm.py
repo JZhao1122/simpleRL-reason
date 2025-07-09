@@ -116,7 +116,7 @@ class LLM_Service:
             content += text
             tokens += token
             entropies += entropy
-            response_token_ids += token_id
+            response_token_ids += int(token_id)
             prompt += text
         
         if reward_mode == "token":
