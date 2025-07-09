@@ -185,6 +185,7 @@ async def api_generate(request: Request):
 
 @app.post("/worker_reward_inference")
 async def reward_inference(request: Request):
+    print("Starting reward inference...")
     try:
         params = await request.json()
         await acquire_worker_semaphore()

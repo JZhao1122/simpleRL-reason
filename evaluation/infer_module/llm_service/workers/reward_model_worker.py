@@ -203,8 +203,6 @@ class ModelWorker(BaseModelWorker):
         print("Entering reward_inference_gate")
         input_str = params["input_str"]
         print(f"params is {params}")
-        if params['type'] == 'beam_search':
-            input_str = tuple(input_str)
         print(f"The input_str is {input_str}")
         print(f"Type of input_str: {type(input_str)}")
         print(isinstance(input_str, tuple))

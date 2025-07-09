@@ -332,7 +332,7 @@ class RMRemoteCaller(RewardModelCallingFunction):
         response_ids: Any = None,
     ) -> Union[List[int], List[List[int]]]:
         if prompt_ids is not None and response_ids is not None:
-            input_str = (prompt_ids, response_ids)
+            input_str = [prompt_ids, response_ids]
             return _reward_inference_fastchat(
                 input_str=input_str, model_name=self.model_name, controller_addr=self.controller_addr, timeout=timeout, beam_search=True
             )
