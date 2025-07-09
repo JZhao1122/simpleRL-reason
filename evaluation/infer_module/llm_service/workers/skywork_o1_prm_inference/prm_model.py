@@ -87,6 +87,8 @@ class PRM_MODEL(PreTrainedModelWrapper):
         self.v_head = ValueHead(self.pretrained_model.config, **v_head_kwargs)
 
         self._init_weights(**v_head_kwargs)
+        
+        self.past_key_values = None
 
     def _init_weights(self, **kwargs):
         r"""
@@ -138,7 +140,10 @@ class PRM_MODEL(PreTrainedModelWrapper):
                 Additional keyword arguments, that are passed to the wrapped model.
         """
         kwargs["output_hidden_states"] = True  # this had already been set in the LORA / PEFT examples
-        kwargs["past_key_values"] = past_key_values
+        if past_key_values is not None:
+            kwargs["past_key_values"] = past_key_values
+        else:
+            kwargs["past_key_values"] = self.past_key_values
 
         if self.is_peft_model and self.pretrained_model.active_peft_config.peft_type == "PREFIX_TUNING":
             kwargs.pop("past_key_values")
@@ -148,6 +153,7 @@ class PRM_MODEL(PreTrainedModelWrapper):
             attention_mask=attention_mask,
             **kwargs,
         )
+        self.past_key_values = base_model_output.past_key_values
 
         last_hidden_state = base_model_output.hidden_states[-1]
         # lm_logits = base_model_output.logits

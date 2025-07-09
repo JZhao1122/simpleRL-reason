@@ -68,7 +68,6 @@ class LLM_Service:
             "entropies": List of entropy for each token,
         }
         '''
-        copy_sampling_params = deepcopy(sampling_params)
         assert sampling_params.n == 1, "For token-level inference, sampling_params.n should be set to 1."
         if verbose:
             cprint(prompt, "Prompt")
@@ -144,7 +143,7 @@ class LLM_Service:
         
         entropy_indices = [i for i, entropy in enumerate(entropies) if entropy >= entropy_threshold]
 
-        sampling_params = copy_sampling_params
+        sampling_params["max_tokens"] = max_tokens  # Reset max_tokens for future use
 
         return {
             "content": content,
