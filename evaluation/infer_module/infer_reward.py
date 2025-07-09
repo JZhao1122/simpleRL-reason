@@ -44,8 +44,7 @@ class Reward_Service:
     
     def BS_predict_rewards(self, 
                       prompt_ids: List,
-                      response_ids: List,
-                      past_key_values: Any) -> List:
+                      response_ids: List) -> List:
         '''Specialized method for Beam Search'''
         step_scores, token_scores, current_past_key_values = self.rm_call(
             qa_pairs=None, 
