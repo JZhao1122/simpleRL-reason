@@ -177,7 +177,7 @@ class LLM_Service:
         
         print("New log distribution:", new_log_distribution)
 
-        def softmax_sample_numpy(scores_dict: dict):
+        def norm_sample(scores_dict: dict):
             if not scores_dict:
                 raise ValueError("Input dictionary cannot be empty.")
             
@@ -185,23 +185,21 @@ class LLM_Service:
             scores = np.array(list(scores_dict.values()), dtype=np.float64)
 
             if len(items) == 1:
-                return {items[0]: 1.0}
+                return items[0]
 
-            # --- 1. Softmax Normalization (Numerically stable) ---
-            scores -= np.max(scores)  # Subtract max for stability
-            exps = np.exp(scores)
-            probabilities = exps / np.sum(exps)
+            # --- 1. Normalization (Numerically stable) ---
+            probabilities = scores / np.sum(scores)
 
             # --- 2. Weighted Random Sampling ---
             sampled_item = np.random.choice(items, p=probabilities)
 
-            return items, probabilities
+            return sampled_item
         
-        token_id, prob = softmax_sample_numpy(new_log_distribution)
+        token_id = norm_sample(new_log_distribution)
         token = id2token[token_id]
         text = token
 
-        print(f"Sampled token: {token}, Token ID: {token_id}, Probability: {prob}")
+        print(f"Sampled token: {token}, Token ID: {token_id}")
 
         return text, [token], [token_id]
 
