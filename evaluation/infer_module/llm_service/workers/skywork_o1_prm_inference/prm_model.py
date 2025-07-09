@@ -88,6 +88,7 @@ class PRM_MODEL(PreTrainedModelWrapper):
 
         self._init_weights(**v_head_kwargs)
         
+        self.past_key_values = None
         self.id2cache = {}
 
     def _init_weights(self, **kwargs):
@@ -120,6 +121,7 @@ class PRM_MODEL(PreTrainedModelWrapper):
         attention_mask=None,
         return_past_key_values=False,
         return_probs=False,
+        cache_mode='none', # `update`, `initial`, `infer`
         **kwargs,
     ):
         r"""
@@ -140,12 +142,38 @@ class PRM_MODEL(PreTrainedModelWrapper):
                 Additional keyword arguments, that are passed to the wrapped model.
         """
         kwargs["output_hidden_states"] = True  # this had already been set in the LORA / PEFT examples
-        if past_key_values is not None:
+        if past_key_values is not None and cache_mode == 'none':
             kwargs["past_key_values"] = past_key_values
-        else:
-            print("Using the past_key_values")
+            kwargs["use_cache"] = True  # this is needed for the past_key_values to be returned
+        
+        if cache_mode == 'infer':
+            print("Using the past_key_values to INFERENCE")
             kwargs["past_key_values"] = self.past_key_values
             kwargs["use_cache"] = True  # this is needed for the past_key_values to be returned
+        
+        if cache_mode == 'initial':
+            print("Initialize the past_key_values")
+            self.past_key_values = self.pretrained_model(
+                input_ids=input_ids[:][:-1],
+                attention_mask=attention_mask,
+                **kwargs,
+            ).past_key_values
+
+            kwargs["past_key_values"] = self.past_key_values
+            kwargs["use_cache"] = True  # this is needed for the past_key_values to be returned
+
+        if cache_mode == 'update':
+            print("Updating the past_key_values")
+            target_id = int(input_ids[0][-1])
+            self.past_key_values = self.id2cache[target_id]
+            self.id2cache = {}
+
+            kwargs["past_key_values"] = self.past_key_values
+            kwargs["use_cache"] = True  # this is needed for the past_key_values to be returned
+
+        if cache_mode != 'none':
+            input_ids = input_ids[:, -1:]
+            assert input_ids.shape[1] == 1, "When using cache_mode, input_ids should only contain the last token."
 
         # if self.is_peft_model and self.pretrained_model.active_peft_config.peft_type == "PREFIX_TUNING":
         #     kwargs.pop("past_key_values")
@@ -155,7 +183,7 @@ class PRM_MODEL(PreTrainedModelWrapper):
             attention_mask=attention_mask,
             **kwargs,
         )
-        self.past_key_values = base_model_output.past_key_values
+        self.id2cache[int(input_ids[0][-1])] = base_model_output.past_key_values
 
         last_hidden_state = base_model_output.hidden_states[-1]
         # lm_logits = base_model_output.logits
