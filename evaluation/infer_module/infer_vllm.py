@@ -10,8 +10,8 @@ from utils.util import timestamped_print, cprint
 from contextlib import redirect_stdout
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
-from infer_reward import Reward_Service
 from typing import Any, Dict, List, Tuple
+from .infer_reward import Reward_Service
 
 
 class LLM_Service:
@@ -159,6 +159,9 @@ class LLM_Service:
         }
         '''
         log_distribution = self.get_logprobs(request_results)[0][0][0]
+
+        print("Log distribution:", log_distribution)
+
         new_log_distribution = {}
         id2token = {}
         for key, value in log_distribution.items():
@@ -166,9 +169,14 @@ class LLM_Service:
                 prompt_ids=prompt_ids,
                 response_ids=[int(key)]
             )[0]
+
+            print(f"Key: {key}, Logprob: {value.logprob}, Decoded Token: {value.decoded_token}, Reward: {reward}")
+
             new_log_distribution[key] = math.exp(value.logprob) * reward
             id2token[key] = value.decoded_token
         
+        print("New log distribution:", new_log_distribution)
+
         def softmax_sample_numpy(scores_dict: dict):
             if not scores_dict:
                 raise ValueError("Input dictionary cannot be empty.")
@@ -192,6 +200,8 @@ class LLM_Service:
         token_id, prob = softmax_sample_numpy(new_log_distribution)
         token = id2token[token_id]
         text = token
+
+        print(f"Sampled token: {token}, Token ID: {token_id}, Probability: {prob}")
 
         return text, [token], [token_id]
 
