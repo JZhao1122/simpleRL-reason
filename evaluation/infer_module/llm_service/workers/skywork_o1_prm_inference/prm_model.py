@@ -143,6 +143,7 @@ class PRM_MODEL(PreTrainedModelWrapper):
         if past_key_values is not None:
             kwargs["past_key_values"] = past_key_values
         else:
+            print("Using the past_key_values")
             kwargs["past_key_values"] = self.past_key_values
 
         if self.is_peft_model and self.pretrained_model.active_peft_config.peft_type == "PREFIX_TUNING":

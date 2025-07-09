@@ -143,7 +143,7 @@ class LLM_Service:
         
         entropy_indices = [i for i, entropy in enumerate(entropies) if entropy >= entropy_threshold]
 
-        sampling_params["max_tokens"] = max_tokens  # Reset max_tokens for future use
+        sampling_params.max_tokens = max_tokens  # Reset max_tokens for future use
 
         return {
             "content": content,
