@@ -15,7 +15,7 @@ from .infer_reward import Reward_Service
 
 
 class LLM_Service:
-    def __init__(self, model_path: str, tensor_parallel_size: int, device: str = "cuda: 0"):
+    def __init__(self, model_path: str, tensor_parallel_size: int, device: str = "cuda:0"):
         # Load the model and tokenizer
         timestamped_print(f"Loading model from {model_path}", level="INFO")
         self.model = LLM(
