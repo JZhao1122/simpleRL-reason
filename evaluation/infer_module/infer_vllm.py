@@ -47,10 +47,17 @@ class LLM_Service:
             reward_mode: str = "none", # 'token'
             decode_mode: str = "none",  # 'token' or 'entropy'
             entropy_threshold: float = 0.02,
+            max_candidates: int = None,
+            combine_prob: callable = None,
             reward_service: Reward_Service = None,
             verbose: bool = False,
         ):
         '''
+        combine_prob should be a callable that takes two arguments:
+        - value: float
+        - reward: float
+        and returns a float representing the combined probability.
+
         custom token-level inference function for vLLM
         This function generates tokens one by one, allowing for more control over the generation process.
         The sampling_params.n should be set to 1.
@@ -106,7 +113,9 @@ class LLM_Service:
                     entropy=entropy, 
                     sampling_params=sampling_params,
                     entropy_threshold=entropy_threshold,
+                    max_candidates=max_candidates,
                     reward_service=reward_service,
+                    combine_prob=combine_prob,
                     verbose=verbose
                 )
                 if result:
@@ -152,8 +161,10 @@ class LLM_Service:
             entropy: float,
             entropy_threshold: float, 
             sampling_params: SamplingParams, 
+            max_candidates: int = None,
             reward_service: Reward_Service = None,
-            verbose: bool = False
+            verbose: bool = False,
+            combine_prob: callable = None
         ): # -> text, token, token_id
         if decode_mode == 'entropy':
             if entropy < entropy_threshold:
@@ -171,9 +182,11 @@ class LLM_Service:
         if verbose:
             print("Log distribution:", log_distribution)
 
-        new_log_distribution = {}
+        new_distribution = {}
         id2token = {}
-        for key, value in log_distribution.items():
+        for i, (key, value) in enumerate(log_distribution.items()):
+            if i == max_candidates:
+                break
             reward = reward_service.BS_predict_rewards(
                 prompt_ids=prompt_ids,
                 response_ids=[int(key)]
@@ -182,11 +195,11 @@ class LLM_Service:
             if verbose:
                 print(f"Key: {key}, Logprob: {value.logprob}, Decoded Token: {value.decoded_token}, Reward: {reward}")
 
-            new_log_distribution[key] = math.exp(value.logprob) * reward
+            new_distribution[key] = combine_prob(math.exp(value.logprob), reward)
             id2token[key] = value.decoded_token
         
         if verbose:
-            print("New log distribution:", new_log_distribution)
+            print("New log distribution:", new_distribution)
 
         def norm_sample(scores_dict: dict):
             if not scores_dict:
@@ -206,7 +219,7 @@ class LLM_Service:
 
             return sampled_item
         
-        token_id = norm_sample(new_log_distribution)
+        token_id = norm_sample(new_distribution)
         token = id2token[token_id]
         text = token
 
