@@ -77,6 +77,7 @@ class LLM_Service:
         tokens = []
         token_rewards = []
         entropies = []
+        logprobs = []
         prompt_token_ids = []
         response_token_ids = []
         initial = True
@@ -95,6 +96,7 @@ class LLM_Service:
             token = self.get_response_tokens(request_results)[0][0]
             entropy = self.get_entropys(request_results)[0][0]
             token_id = self.get_response_tokenIDs(request_results)[0][0]
+            log_prob = self.get_logprobs(request_results)[0][0]
 
             if not text or not token:
                 print(" <end> No text or token generated, breaking the loop.")
@@ -131,6 +133,7 @@ class LLM_Service:
             tokens += token
             entropies += entropy
             response_token_ids += token_id
+            logprobs += log_prob
             prompt += text
         
         if reward_mode == "token":
@@ -156,6 +159,7 @@ class LLM_Service:
             "token_rewards": token_rewards,
             "entropies": entropies,
             "entropy_indices": entropy_indices,
+            "logprobs": logprobs,
             "prompt_token_ids": prompt_token_ids,
             "response_token_ids": response_token_ids,
         }

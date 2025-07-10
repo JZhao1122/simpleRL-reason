@@ -95,6 +95,7 @@ def process_file(args) -> None:
         data['token_rewards'] = []
         data['entropies'] = []
         data['entropy_indices'] = []
+        data['log_probs'] = []
     
     for i in range(args.num-len(data['policy_responses'])):
         sampling_params = SamplingParams(
@@ -104,8 +105,8 @@ def process_file(args) -> None:
             top_p=args.top_p,
             top_k=args.top_k,
             max_tokens=args.max_tokens,  # Maximum number of tokens to generate
-            logprobs=20,
-            prompt_logprobs=20,
+            logprobs=min(20, args.top_k),
+            prompt_logprobs=min(20, args.top_k),
         )
         combine_prob = importlib.import_module("eval_logic.eval_utils.combine_probs")
         combine_prob = getattr(combine_prob, args.combine_prob)
@@ -127,6 +128,7 @@ def process_file(args) -> None:
         data['token_rewards'].append(result['token_rewards'])
         data['entropies'].append(result['entropies'])
         data['entropy_indices'].append(result['entropy_indices'])
+        data['log_probs'].append(result['log_probs'])
         data['correctness'].append(
             verify(
                 parse(result['content']), 
