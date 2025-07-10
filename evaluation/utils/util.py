@@ -101,3 +101,21 @@ def print_args(
     output.append(f"\033[1;35m{sep}\033[0m\n")
 
     print('\n'.join(output))
+
+def random_initialize():
+    """
+    Initialize random seed for reproducibility.
+    """
+    import random
+    import numpy as np
+    import torch
+    from datetime import datetime
+
+    seed = datetime.now().timestamp()
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+    timestamped_print("Random seed initialized for reproducibility.", "INFO")

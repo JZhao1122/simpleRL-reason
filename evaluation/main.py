@@ -6,7 +6,7 @@ import importlib
 import traceback
 
 from framework import run_infer
-from utils.util import timestamped_print, print_args
+from utils.util import timestamped_print, print_args, random_initialize
 
 
 def parse_args():
@@ -58,6 +58,7 @@ def parse_args():
 def main():
     args = parse_args()
     print_args(args, program_name="Main Data Processor", version="1.0")
+    random_initialize()
     try:
         timestamped_print(f"Attempting to import processor module: {args.process_module}")
         importlib.import_module(args.process_module)
