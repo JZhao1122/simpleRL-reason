@@ -133,7 +133,21 @@ class LLM_Service:
             tokens += token
             entropies += entropy
             response_token_ids += token_id
-            logprobs += log_prob
+
+            '''
+            list[Optional[dict[int, Logprob]]]
+            [{1: Logprob(logprob=-0.04350040480494499, rank=1, decoded_token='0'),
+              2: Logprob(logprob=-5.1685004234313965, rank=2, decoded_token='1'), ...}]
+            '''
+            def transform_logprobs(lp):
+                if not lp:
+                    return []
+                res = {}
+                for logprob in lp.values():
+                    res[logprob.decoded_token] = logprob.logprob
+                return res
+            
+            logprobs += [transform_logprobs(lp) for lp in log_prob]
             prompt += text
         
         if reward_mode == "token":
