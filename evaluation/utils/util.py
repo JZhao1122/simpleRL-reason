@@ -111,11 +111,11 @@ def random_initialize():
     import torch
     from datetime import datetime
 
-    seed = hash(datetime.now().timestamp())
+    seed = hash(datetime.now().timestamp()) % (2 ** 32 -1)
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-    timestamped_print("Random seed initialized for reproducibility.", "INFO")
+    timestamped_print(f"Random seed reinitialized. to {seed}", "INFO")
