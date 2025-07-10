@@ -111,7 +111,7 @@ def random_initialize():
     import torch
     from datetime import datetime
 
-    seed = datetime.now().timestamp()
+    seed = hash(datetime.now().timestamp())
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
