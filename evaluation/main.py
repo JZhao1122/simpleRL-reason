@@ -21,8 +21,8 @@ def parse_args():
     parser.add_argument("--store_type", type=str, choices=['file', 'folder'], default='file', help="Type of data storage.")
     # policy inference
     parser.add_argument("--num", type=int, default=1)
-    parser.add_argument("--temperature", type=float, default=0.7)
-    parser.add_argument("--top_k", type=int, default=-1)
+    parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument("--top_k", type=int, default=20)
     parser.add_argument("--top_p", type=float, default=1)
     parser.add_argument("--max_tokens", type=int, default=16384)
     parser.add_argument("--system_prompt", type=str, default="You are a helpful assistant.", help="System prompt for the model.")
