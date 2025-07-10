@@ -118,4 +118,6 @@ def random_initialize():
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-    timestamped_print(f"Random seed reinitialized. to {seed}", "INFO")
+    timestamped_print(f"Random seed reinitialized to {seed}", "INFO")
+
+    return seed

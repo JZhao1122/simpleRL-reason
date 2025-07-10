@@ -7,7 +7,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, ".."))
 sys.path.append(root_dir)
 from framework.register import register_processor
-from utils.util import load_json, save_json, timestamped_print
+from utils.util import load_json, save_json, timestamped_print, random_initialize
 from infer_module.infer_vllm import LLM_Service
 from infer_module.infer_reward import Reward_Service
 from vllm import SamplingParams
@@ -98,6 +98,7 @@ def process_file(args) -> None:
     
     for i in range(args.num-len(data['policy_responses'])):
         sampling_params = SamplingParams(
+            seed=random_initialize(),
             n=1,
             temperature=args.temperature,
             top_p=args.top_p,
