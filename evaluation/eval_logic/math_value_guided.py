@@ -95,7 +95,7 @@ def process_file(args) -> None:
         data['token_rewards'] = []
         data['entropies'] = []
         data['entropy_indices'] = []
-        data['log_probs'] = []
+        data['logprobs'] = []
     
     for i in range(args.num-len(data['policy_responses'])):
         sampling_params = SamplingParams(
@@ -128,7 +128,7 @@ def process_file(args) -> None:
         data['token_rewards'].append(result['token_rewards'])
         data['entropies'].append(result['entropies'])
         data['entropy_indices'].append(result['entropy_indices'])
-        data['log_probs'].append(result['log_probs'])
+        data['logprobs'].append(result['logprobs'])
         data['correctness'].append(
             verify(
                 parse(result['content']), 
