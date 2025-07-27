@@ -235,6 +235,7 @@ def process_file(args) -> None:
         for prompt, finish_reason, stop_reason in zip(new_prompts, finish_reasons, stop_reasons):
             if finish_reason == 'length' or stop_reason is None:
                 final_prompts.append(prompt)
+                current_num -= 1
                 continue
             prompts.append(prompt)
 
