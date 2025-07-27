@@ -224,9 +224,6 @@ def process_file(args) -> None:
             "max_tokens": sampling_params.max_tokens,
             "prompts": prompts,
         }
-        if idd < args.step_threshold:
-            # If we are still in the initial steps, we should not filter.
-            continue
         new_prompts, finish_reasons, stop_reasons = multi2multi(
             k=len(prompts),
             n=current_num,
@@ -242,6 +239,10 @@ def process_file(args) -> None:
                 continue
             prompts.append(prompt)
 
+        if idd < args.step_threshold:
+            # If we are still in the initial steps, we should not filter.
+            continue
+        
         filtered_prompts = filter(
             prompts=prompts, 
             llm_service=llm_service, 
