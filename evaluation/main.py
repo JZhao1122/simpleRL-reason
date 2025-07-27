@@ -39,8 +39,10 @@ def parse_args():
     parser.add_argument("--max_candidates", type=int, default=5, help="Maximum number of candidates for sampling.")
     parser.add_argument("--entropy_threshold", type=float, default=0.5, help="Entropy threshold for filtering candidates.")
     parser.add_argument("--combine_prob", type=str, default="multiple", help="Function to combine probabilities.")
-    # filter strategy
+    # non_repeat_BS
     parser.add_argument("--filter_strategy", type=str, choices=["prompt", "model"], default='prompt', help="Strategy for filtering candidates.")
+    parser.add_argument("--step_threshold", type=int, default=0, help="Threshold for the number of steps in non-repeat beam search.")
+    parser.add_argument("--filter_proportation_threshold", type=float, default=0.0, help="Threshold for filtering based on proportion.")
     # # Beam Search
     # parser.add_argument("--beam_size", type=int, default=1, help="Number of beams for beam search.")
     # parser.add_argument("--max_depth", type=int, default=1, help="Maximum depth for beam search.")
