@@ -247,7 +247,7 @@ def process_file(args) -> None:
             llm_service=llm_service, 
             strategy=args.filter_strategy
         )
-        if filtered_prompts < args.filter_proportation_threshold * len(prompts):
+        if len(filtered_prompts) < args.filter_proportation_threshold * len(prompts):
             # If the number of filtered prompts is less than the threshold
             prompts = prompts
         else:
