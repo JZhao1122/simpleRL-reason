@@ -244,7 +244,6 @@ def process_file(args) -> None:
             llm_service=llm_service, 
             strategy=args.filter_strategy
         )
-    
     data['policy_responses'] = [prompt[initial_length:] for prompt in final_prompts]
     data['correctness'] = [
         verify(
@@ -253,4 +252,5 @@ def process_file(args) -> None:
         )
         for response in data['policy_responses']
     ]
+    data['trajectory'] = trajectory
     save_json(data, args.output_filepath)
