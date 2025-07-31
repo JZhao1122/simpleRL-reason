@@ -10,7 +10,7 @@ from utils.util import load_json, save_json, timestamped_print, random_initializ
 from infer_module.infer_vllm import LLM_Service
 from vllm import SamplingParams
 from math_verify import parse, verify
-from types import List
+from typing import List, Any, Dict
 
 
 _cached_llm_service = None  # Global variable to cache the LLM_Service instance
