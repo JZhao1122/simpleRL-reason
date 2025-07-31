@@ -85,12 +85,12 @@ def process_file(args) -> None:
     prompt = llm_service.build_prompt(messages)
     responses: List[str] = data["policy_responses"]
     data["analyze_res"] = {}
-    for i, res in enumerate(responses):
-        data["analyze_res"][i] = []
+    for idd, res in enumerate(responses):
+        data["analyze_res"][idd] = []
         responses_list = res.split("\n\n")
-        for i in range(1, len(responses_list) + 1):
-            data["analyze_res"][i] += [
-                analyze( prompt + "\n\n".join(responses_list[:i]), llm_service )
+        for ii in range(1, len(responses_list) + 1):
+            data["analyze_res"][idd] += [
+                analyze( prompt + "\n\n".join(responses_list[:ii]), llm_service )
             ]
     
     save_json(data, args.output_filepath)
